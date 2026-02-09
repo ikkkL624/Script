@@ -201,6 +201,7 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
         warn("Auto Rebirth DETENIDO")
     end
 end)
+
 local strengthTab = Window:AddTab("Strength op")
 
 getgenv()._AutoRepFarmEnabled = false
