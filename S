@@ -3,16 +3,16 @@ local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/L
 local Window = bd:AddWindow("The StrongestRework | Farming", {
     min_size = Vector2.new(450, 450),
     background = {
-        [1] = Color3.fromRGB(10, 20, 60),
-        [2] = Color3.fromRGB(30, 50, 120)
+        [1] = Color3.fromRGB(255, 230, 240),
+        [2] = Color3.fromRGB(255, 182, 193)
     },
-    main_color = Color3.fromRGB(220, 220, 255),
+    main_color = Color3.fromRGB(255, 105, 180),
     can_resize = true,
-    title_bar_transparency = 0.25,
-    background_transparency = 0.15,
+    title_bar_transparency = 0.20,
+    background_transparency = 0.12,
     title_bar = {
-        [1] = Color3.fromRGB(180, 0, 0),
-        [2] = Color3.fromRGB(220, 40, 40)
+        [1] = Color3.fromRGB(255, 20, 147),
+        [2] = Color3.fromRGB(219, 112, 147)
     }
 })
 
