@@ -62,7 +62,7 @@ lblStats.TextSize = 17
 
 local lblTimer = rebirthTab:AddLabel("0d 0h 0m 0s - Inactive")
 lblTimer.TextSize = 15
-lblTimer.TextColor3 = Color3.fromRGB(255, 20, 147)  -- Rosa fuerte para inactive
+lblTimer.TextColor3 = Color3.fromRGB(255, 50, 50)
 
 local lblCurrentPace = rebirthTab:AddLabel("Pace: 0/Seg | 0/Min | 0/Hora | 0/Día | 0/Sem | 0/Mes")
 lblCurrentPace.TextSize = 15
@@ -72,7 +72,7 @@ lblAveragePace.TextSize = 15
 
 local lblRebirthsInfo = rebirthTab:AddLabel("Rebirths actuales: 0 | Gained: 0")
 lblRebirthsInfo.TextSize = 16
-lblRebirthsInfo.TextColor3 = Color3.fromRGB(255, 105, 180)  -- Rosa fuerte
+lblRebirthsInfo.TextColor3 = Color3.fromRGB(255, 215, 0)
 
 local toggleTrack, _ = rebirthTab:AddSwitch("Start Tracking", function(state)
     tracking = state
@@ -80,10 +80,10 @@ local toggleTrack, _ = rebirthTab:AddSwitch("Start Tracking", function(state)
         gainedRebirths = 0
         startTimeRebirth = tick()
         rebirthHistory = {}
-        lblTimer.TextColor3 = Color3.fromRGB(255, 182, 193)  -- Rosa suave para active
+        lblTimer.TextColor3 = Color3.fromRGB(0, 255, 100)
         lblTimer.Text = "0d 0h 0m 0s - Active"
     else
-        lblTimer.TextColor3 = Color3.fromRGB(255, 20, 147)
+        lblTimer.TextColor3 = Color3.fromRGB(255, 50, 50)
         lblTimer.Text = formatTime(tick() - startTimeRebirth) .. " - Inactive"
     end
 end)
@@ -132,68 +132,83 @@ task.spawn(function()
     end
 end)
 
--- Auto Rebirth ultra-rápido (mantenido igual)
+-- Auto Rebirth ultra-rápido (fix renace exacto con .Changed en strength)
 getgenv().AutoFarming = false
 
 rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
     getgenv().AutoFarming = state
     if state then
-        warn("⚡ Auto Rebirth ULTRA-RÁPIDO ACTIVADO")
+        warn("⚡ Auto Rebirth ACTIVADO - Fix renace exacto")
         task.spawn(function()
             while getgenv().AutoFarming do
-                local req = 10000 + (5000 * rebirthStat.Value)
-                for _, folder in pairs(player.petsFolder:GetChildren()) do
-                    if folder:IsA("Folder") then
-                        for _, pet in pairs(folder:GetChildren()) do
-                            pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet) end)
+                local req = getStrengthRequiredForRebirth()
+                -- Desequipar
+                for _, f in pairs(player.petsFolder:GetChildren()) do
+                    if f:IsA("Folder") then
+                        for _, p in pairs(f:GetChildren()) do
+                            pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", p) end)
                         end
                     end
                 end
                 task.wait(0.05)
 
-                for _, folder in pairs(player.petsFolder:GetChildren()) do
-                    if folder:IsA("Folder") then
-                        for _, pet in pairs(folder:GetChildren()) do
-                            if pet.Name == "Swift Samurai" then
-                                pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet) end)
+                -- Equipar farm pet
+                for _, f in pairs(player.petsFolder:GetChildren()) do
+                    if f:IsA("Folder") then
+                        for _, p in pairs(f:GetChildren()) do
+                            if p.Name == "Swift Samurai" then
+                                pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", p) end)
                             end
                         end
                     end
                 end
+
+                -- Farm con chequeo real-time
+                local strengthConnection
+                strengthConnection = strengthStat.Changed:Connect(function(newStrength)
+                    if newStrength >= req then
+                        strengthConnection:Disconnect()
+                        -- Proceder a rebirth inmediatamente
+                    end
+                end)
 
                 while strengthStat.Value < req and getgenv().AutoFarming do
                     for _ = 1, 80 do pcall(function() player.muscleEvent:FireServer("rep") end) end
                     task.wait(0.01)
                 end
 
+                if strengthConnection then strengthConnection:Disconnect() end
                 if not getgenv().AutoFarming then break end
 
-                for _, folder in pairs(player.petsFolder:GetChildren()) do
-                    if folder:IsA("Folder") then
-                        for _, pet in pairs(folder:GetChildren()) do
-                            pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet) end)
+                -- Preparar rebirth
+                for _, f in pairs(player.petsFolder:GetChildren()) do
+                    if f:IsA("Folder") then
+                        for _, p in pairs(f:GetChildren()) do
+                            pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", p) end)
                         end
                     end
                 end
                 task.wait(0.05)
 
-                for _, folder in pairs(player.petsFolder:GetChildren()) do
-                    if folder:IsA("Folder") then
-                        for _, pet in pairs(folder:GetChildren()) do
-                            if pet.Name == "Tribal Overlord" then
-                                pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet) end)
+                -- Equipar rebirth pet
+                for _, f in pairs(player.petsFolder:GetChildren()) do
+                    if f:IsA("Folder") then
+                        for _, p in pairs(f:GetChildren()) do
+                            if p.Name == "Tribal Overlord" then
+                                pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", p) end)
                             end
                         end
                     end
                 end
 
-                local oldRebirth = rebirthStat.Value
+                -- Spam rebirth
+                local old = rebirthStat.Value
                 local attempts = 0
                 repeat
                     pcall(function() game.ReplicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest") end)
                     task.wait(0.04)
                     attempts = attempts + 1
-                until rebirthStat.Value > oldRebirth or attempts > 50 or not getgenv().AutoFarming
+                until rebirthStat.Value > old or attempts > 50 or not getgenv().AutoFarming
             end
             warn("Auto Rebirth DETENIDO")
         end)
