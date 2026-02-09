@@ -1,11 +1,6 @@
--- =====================================================
--- GENX FARMING HUB - CÓDIGO COMPLETO Y PERFECTO (2026)
--- Fast Rebirth (renace exacto) | Strength Op (Eat Egg + Gains) | Misc
--- =====================================================
+local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/red.luau"))()
 
-local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/imhenne187/libvariations/refs/heads/main/librarys/red.luau"))()
-
-local Window = bd:AddWindow("The StrongestRework| Farming", {
+local Window = bd:AddWindow("The StrongestRework | Farming", {
     min_size = Vector2.new(450, 450),
     background = {
         [1] = Color3.fromRGB(10, 20, 60),
