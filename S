@@ -34,10 +34,6 @@ local function formatNumber(number)
     else return (isNegative and "-" or "") .. string.format("%.0f", number) end
 end
 
--- =====================================================
--- TAB 1: FAST REBIRTH
--- =====================================================
-
 local rebirthTab = Window:AddTab("Fast Rebirth")
 
 local tracking = false
@@ -206,41 +202,109 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
     end
 end)
 
--- =====================================================
--- TAB 2: STRENGTH OP (con Eat Egg)
--- =====================================================
-
-local strengthTab = Window:AddTab("Strength Op")
-
 getgenv()._AutoRepFarmEnabled = false
 
+-- Configuración
 local PET_NAMES = {"Swift Samurai", "Sarge"}
 local PROTEIN_EGG_NAME = "Protein Egg"
-local PROTEIN_EGG_INTERVAL = 30 * 60
+local PROTEIN_EGG_INTERVAL = 30 * 60  -- 30 minutos
+local ROCK_NAME = "Rock5M"
+local ROCK_INTERVAL = 3
+local MAX_PING = 500
+local MIN_PING = 200
+local REP_WAIT_MIN = 0.0003
+local REP_WAIT_MAX = 0.0008
+local farmingPaused = false
 
--- ... (resto del código de Strength Op: ping check, spam reps, equip pets, hit rock, etc. mantenido igual)
+local HumanoidRootPart
+local lastProteinEggTime = 0
+local lastRockTime = 0
+
+local function getPing()
+    local success, ping = pcall(function()
+        return game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
+    end)
+    return success and ping or 999
+end
+
+local function updateCharacterRefs()
+    local char = player.Character or player.CharacterAdded:Wait()
+    HumanoidRootPart = char:WaitForChild("HumanoidRootPart", 5)
+end
+
+local function equipBestPet()
+    local petsFolder = player:FindFirstChild("petsFolder")
+    if petsFolder and petsFolder:FindFirstChild("Unique") then
+        for _, petName in ipairs(PET_NAMES) do
+            for _, pet in pairs(petsFolder.Unique:GetChildren()) do
+                if pet.Name == petName then
+                    pcall(function()
+                        game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+                    end)
+                    warn("[Strength Op] Equipped: " .. petName)
+                    return
+                end
+            end
+        end
+        warn("[Strength Op] No optimal pet found!")
+    end
+end
+
+-- Función Eat Protein Egg (la que me pasaste)
+local function eatProteinEggNew()
+    local backpack = player:WaitForChild("Backpack", 5)
+    local character = player.Character or player.CharacterAdded:Wait()
+
+    if not backpack or not character then
+        warn("[AutoEgg] Backpack o Character no disponibles.")
+        return
+    end
+
+    local egg = backpack:FindFirstChild(PROTEIN_EGG_NAME)
+    if egg then
+        egg.Parent = character
+        task.wait(0.1)
+        pcall(function()
+            egg:Activate()
+            print("[AutoEgg] Protein Egg consumido.")
+        end)
+    else
+        warn("[AutoEgg] No se encontró Protein Egg en Backpack.")
+    end
+end
+
+local function hitRock()
+    local rock = workspace:FindFirstChild(ROCK_NAME)
+    if rock and HumanoidRootPart then
+        local offsetX = math.random(-30, 30) / 10
+        local offsetZ = -(4 + math.random(0, 2))
+        HumanoidRootPart.CFrame = rock.CFrame * CFrame.new(offsetX, 0, offsetZ)
+        task.wait(0.1)
+        pcall(function()
+            game.ReplicatedStorage.rEvents.hitEvent:FireServer("hit", rock)
+        end)
+    end
+end
+
+-- Toggle principal Auto Rep Farm
+strengthTab:AddSwitch("Strength Op (Min ping 250ms+)", function(state)
+    getgenv()._AutoRepFarmEnabled = state
+    warn("[Strength Op] " .. (state and "ACTIVADO ⚡" or "DESACTIVADO 🛑"))
+end)
 
 -- Toggle Eat Egg (30 Min)
 local autoEatEnabled = false
 
 strengthTab:AddSwitch("Eat Egg (30 Min)", function(state)
     autoEatEnabled = state
-    print(state and "[AutoEgg] ACTIVADO" or "[AutoEgg] DESACTIVADO")
+    print(state and "[AutoEgg] ACTIVADO → Comerá cada 30 min" or "[AutoEgg] DESACTIVADO")
 end)
 
+-- Loop Auto Eat Egg
 task.spawn(function()
     while true do
         if autoEatEnabled then
-            local backpack = player:WaitForChild("Backpack")
-            local character = player.Character or player.CharacterAdded:Wait()
-
-            local egg = backpack:FindFirstChild(PROTEIN_EGG_NAME)
-            if egg then
-                egg.Parent = character
-                task.wait(0.1)
-                pcall(function() egg:Activate() end)
-                print("[AutoEgg] Protein Egg consumido.")
-            end
+            eatProteinEggNew()
             task.wait(PROTEIN_EGG_INTERVAL)
         else
             task.wait(1)
@@ -248,9 +312,161 @@ task.spawn(function()
     end
 end)
 
--- =====================================================
--- TAB 3: MISC
--- =====================================================
+-- Setup principal Auto Rep Farm
+task.spawn(function()
+    updateCharacterRefs()
+    equipBestPet()
+    lastProteinEggTime = tick()
+    lastRockTime = tick()
+
+    -- Monitor ping
+    task.spawn(function()
+        while true do
+            if getgenv()._AutoRepFarmEnabled then
+                local ping = getPing()
+                farmingPaused = ping > MAX_PING
+                if farmingPaused then
+                    warn("[Strength Op] Ping alto (" .. math.floor(ping) .. "ms) → Pausado")
+                end
+            end
+            task.wait(0.5)
+        end
+    end)
+
+    -- Spam reps ultra-rápido
+    task.spawn(function()
+        while true do
+            if getgenv()._AutoRepFarmEnabled and not farmingPaused then
+                pcall(function() player.muscleEvent:FireServer("rep") end)
+            end
+            task.wait(math.random(REP_WAIT_MIN * 10000, REP_WAIT_MAX * 10000) / 10000)
+        end
+    end)
+
+    -- Rock5M (cada 3s)
+    task.spawn(function()
+        while true do
+            if getgenv()._AutoRepFarmEnabled and not farmingPaused then
+                local now = tick()
+                if now - lastRockTime >= ROCK_INTERVAL then
+                    hitRock()
+                    lastRockTime = now
+                end
+            end
+            task.wait(1)
+        end
+    end)
+
+    -- Respawn handler
+    player.CharacterAdded:Connect(function()
+        task.wait(3)
+        updateCharacterRefs()
+        equipBestPet()
+        warn("[Strength Op] Respawn detectado → Re-equip pet")
+    end)
+
+    print("[Strength Op] Sistema de fuerza cargado completo!")
+end)
+
+-- Calculadora de gains real-time (Strength & Durability)
+strengthTab:AddLabel(" ").TextSize = 10
+strengthTab:AddLabel("📈 Gains Real-Time (Strength & Durability)").TextSize = 18
+
+local stopwatchLabel = strengthTab:AddLabel("Fast Rep Time: 0d 0h 0m 0s")
+stopwatchLabel.TextSize = 20
+
+local projectedStrengthLabel = strengthTab:AddLabel("Strength Rate: 0 /Hour | 0 /Day | 0 /Week | 0 /Month")
+projectedStrengthLabel.TextSize = 18
+
+local projectedDurabilityLabel = strengthTab:AddLabel("Durability Rate: 0 /Hour | 0 /Day | 0 /Week | 0 /Month")
+projectedDurabilityLabel.TextSize = 18
+
+strengthTab:AddLabel(" ").TextSize = 10
+
+local statsLabel = strengthTab:AddLabel("Stats Actuales:")
+statsLabel.TextSize = 24
+
+local strengthLabel = strengthTab:AddLabel("Strength: 0 | Gained: 0")
+strengthLabel.TextSize = 20
+
+local durabilityLabel = strengthTab:AddLabel("Durability: 0 | Gained: 0")
+durabilityLabel.TextSize = 20
+
+local startTime = tick()
+local initialStrength = strengthStat.Value
+local initialDurability = durabilityStat and durabilityStat.Value or 0
+local trackingStarted = false
+
+local strengthHistory = {}
+local durabilityHistory = {}
+local calculationInterval = 10
+
+task.spawn(function()
+    local lastCalcTime = tick()
+    while true do
+        local currentTime = tick()
+        local currentStrength = strengthStat.Value
+        local currentDurability = durabilityStat and durabilityStat.Value or 0
+
+        if not trackingStarted and (currentStrength - initialStrength) >= 100e9 then
+            trackingStarted = true
+            startTime = tick()
+            initialStrength = currentStrength
+            initialDurability = currentDurability
+            strengthHistory = {}
+            durabilityHistory = {}
+        end
+
+        if trackingStarted then
+            local elapsed = currentTime - startTime
+            local days = math.floor(elapsed / 86400)
+            local hours = math.floor((elapsed % 86400) / 3600)
+            local mins = math.floor((elapsed % 3600) / 60)
+            local secs = math.floor(elapsed % 60)
+            stopwatchLabel.Text = string.format("Fast Rep Time: %dd %dh %dm %ds", days, hours, mins, secs)
+
+            local gainedStr = currentStrength - initialStrength
+            local gainedDur = currentDurability - initialDurability
+
+            strengthLabel.Text = "Strength: " .. formatNumber(currentStrength) .. " | Gained: " .. formatNumber(gainedStr)
+            durabilityLabel.Text = "Durability: " .. formatNumber(currentDurability) .. " | Gained: " .. formatNumber(gainedDur)
+
+            table.insert(strengthHistory, {time = currentTime, value = currentStrength})
+            table.insert(durabilityHistory, {time = currentTime, value = currentDurability})
+
+            while #strengthHistory > 0 and currentTime - strengthHistory[1].time > calculationInterval do
+                table.remove(strengthHistory, 1)
+            end
+            while #durabilityHistory > 0 and currentTime - durabilityHistory[1].time > calculationInterval do
+                table.remove(durabilityHistory, 1)
+            end
+
+            if currentTime - lastCalcTime >= calculationInterval then
+                lastCalcTime = currentTime
+
+                if #strengthHistory >= 2 then
+                    local delta = strengthHistory[#strengthHistory].value - strengthHistory[1].value
+                    local perSec = delta / calculationInterval
+                    projectedStrengthLabel.Text = "Strength Rate: " .. formatNumber(math.floor(perSec * 3600)) .. "/Hour | " ..
+                                                  formatNumber(math.floor(perSec * 86400)) .. "/Day | " ..
+                                                  formatNumber(math.floor(perSec * 604800)) .. "/Week | " ..
+                                                  formatNumber(math.floor(perSec * 2592000)) .. "/Month"
+                end
+
+                if #durabilityHistory >= 2 then
+                    local delta = durabilityHistory[#durabilityHistory].value - durabilityHistory[1].value
+                    local perSec = delta / calculationInterval
+                    projectedDurabilityLabel.Text = "Durability Rate: " .. formatNumber(math.floor(perSec * 3600)) .. "/Hour | " ..
+                                                    formatNumber(math.floor(perSec * 86400)) .. "/Day | " ..
+                                                    formatNumber(math.floor(perSec * 604800)) .. "/Week | " ..
+                                                    formatNumber(math.floor(perSec * 2592000)) .. "/Month"
+                end
+            end
+        end
+
+        task.wait(0.05)
+    end
+end)
 
 local miscTab = Window:AddTab("Misc")
 
