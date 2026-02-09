@@ -1,0 +1,479 @@
+-- =====================================================
+-- GENX FARMING HUB COMPLETO - ROJO/AZUL (FEB 2026)
+-- Tabs: Fast Rebirth + Strength Op (con nueva calc gains real-time)
+-- =====================================================
+
+local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/imhenne187/libvariations/refs/heads/main/librarys/red.luau"))()
+
+local Window = bd:AddWindow("GenX | Farming - Rojo/Azul", {
+    min_size = Vector2.new(450, 450),
+    background = {
+        [1] = Color3.fromRGB(10, 20, 60),
+        [2] = Color3.fromRGB(30, 50, 120)
+    },
+    main_color = Color3.fromRGB(220, 220, 255),
+    can_resize = true,
+    title_bar_transparency = 0.25,
+    background_transparency = 0.15,
+    title_bar = {
+        [1] = Color3.fromRGB(180, 0, 0),
+        [2] = Color3.fromRGB(220, 40, 40)
+    }
+})
+
+local player = game.Players.LocalPlayer
+local leaderstats = player:WaitForChild("leaderstats")
+local rebirthStat = leaderstats:WaitForChild("Rebirths")
+local strengthStat = leaderstats:WaitForChild("Strength")
+
+-- Durability suele estar en player directamente (no leaderstats)
+local durabilityStat = player:WaitForChild("Durability", 10) or player:FindFirstChild("Durability")
+
+-- Formato masivo con Qa (quadrillones)
+local function formatNumber(number)
+    local isNegative = number < 0
+    number = math.abs(number)
+    if number >= 1e15 then
+        return (isNegative and "-" or "") .. string.format("%.2fQa", number / 1e15)
+    elseif number >= 1e12 then
+        return (isNegative and "-" or "") .. string.format("%.2fT", number / 1e12)
+    elseif number >= 1e9 then
+        return (isNegative and "-" or "") .. string.format("%.2fB", number / 1e9)
+    elseif number >= 1e6 then
+        return (isNegative and "-" or "") .. string.format("%.2fM", number / 1e6)
+    elseif number >= 1e3 then
+        return (isNegative and "-" or "") .. string.format("%.2fK", number / 1e3)
+    else
+        return (isNegative and "-" or "") .. string.format("%.0f", number)
+    end
+end
+
+-- =====================================================
+-- TAB 1: FAST REBIRTH
+-- =====================================================
+
+local rebirthTab = Window:AddTab("Fast Rebirth")
+
+-- Pace tracker rebirths
+local tracking = false
+local sessionRebirths = 0
+local totalRebirths = 0
+local startTimeRebirth = 0
+local lastRebirthValue = rebirthStat.Value
+local averageRebirths = 0
+local averageTime = 0
+
+local function formatTime(elapsed)
+    local totalSec = math.floor(elapsed)
+    local d = math.floor(totalSec / 86400)
+    local h = math.floor((totalSec % 86400) / 3600)
+    local m = math.floor((totalSec % 3600) / 60)
+    local s = totalSec % 60
+    return string.format("%dd %dh %dm %ds", d, h, m, s)
+end
+
+local function calculatePaces(rebirths, elapsed)
+    local hours = elapsed / 3600
+    local days = elapsed / 86400
+    local weeks = elapsed / (86400 * 7)
+    local paceHour = hours > 0 and (rebirths / hours) or 0
+    local paceDay  = days > 0 and (rebirths / days) or 0
+    local paceWeek = weeks > 0 and (rebirths / weeks) or 0
+    return formatNumber(paceHour), formatNumber(paceDay), formatNumber(paceWeek)
+end
+
+local lblStatsRebirth = rebirthTab:AddLabel("📊 Rebirth Stats:")
+lblStatsRebirth.TextSize = 17
+
+local lblTimerRebirth = rebirthTab:AddLabel("0d 0h 0m 0s - Inactive")
+lblTimerRebirth.TextSize = 15
+lblTimerRebirth.TextColor3 = Color3.fromRGB(255, 50, 50)
+
+local lblCurrentPace = rebirthTab:AddLabel("Rebirth Pace: 0/Hour | 0/Day | 0/Week")
+lblCurrentPace.TextSize = 15
+
+local lblAveragePace = rebirthTab:AddLabel("Average Pace: 0/Hour | 0/Day | 0/Week")
+lblAveragePace.TextSize = 15
+
+local lblCountsRebirth = rebirthTab:AddLabel("Session: 0 | Total: 0")
+lblCountsRebirth.TextSize = 14
+
+local toggleTrackRebirth, _ = rebirthTab:AddSwitch("Start Tracking (Pace)", function(state)
+    tracking = state
+    if state then
+        sessionRebirths = 0
+        startTimeRebirth = tick()
+        lblTimerRebirth.TextColor3 = Color3.fromRGB(0, 255, 100)
+        lblTimerRebirth.Text = "0d 0h 0m 0s - Active"
+    else
+        lblTimerRebirth.TextColor3 = Color3.fromRGB(255, 50, 50)
+        lblTimerRebirth.Text = formatTime(tick() - startTimeRebirth) .. " - Inactive"
+        averageRebirths = averageRebirths + sessionRebirths
+        averageTime = averageTime + (tick() - startTimeRebirth)
+    end
+end)
+
+rebirthTab:AddButton("Reset Rebirth Stats", function()
+    sessionRebirths = 0
+    totalRebirths = 0
+    averageRebirths = 0
+    averageTime = 0
+    lblTimerRebirth.Text = "0d 0h 0m 0s - Inactive"
+    lblTimerRebirth.TextColor3 = Color3.fromRGB(255, 50, 50)
+    lblCurrentPace.Text = "Rebirth Pace: 0/Hour | 0/Day | 0/Week"
+    lblAveragePace.Text = "Average Pace: 0/Hour | 0/Day | 0/Week"
+    lblCountsRebirth.Text = "Session: 0 | Total: 0"
+    toggleTrackRebirth:Set(false)
+    tracking = false
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(0.2)
+        local current = rebirthStat.Value
+        if current > lastRebirthValue then
+            local gained = current - lastRebirthValue
+            if tracking then sessionRebirths = sessionRebirths + gained end
+            totalRebirths = totalRebirths + gained
+        end
+        lastRebirthValue = current
+    end
+end)
+
+task.spawn(function()
+    while true do
+        task.wait(2)
+        if tracking and startTimeRebirth > 0 then
+            local elapsed = tick() - startTimeRebirth
+            local ph, pd, pw = calculatePaces(sessionRebirths, elapsed)
+            lblCurrentPace.Text = "Rebirth Pace: " .. ph .. "/Hour | " .. pd .. "/Day | " .. pw .. "/Week"
+            local aph, apd, apw = calculatePaces(averageRebirths, averageTime)
+            lblAveragePace.Text = "Average Pace: " .. aph .. "/Hour | " .. apd .. "/Day | " .. apw .. "/Week"
+            lblTimerRebirth.Text = formatTime(elapsed) .. " - Active"
+            lblCountsRebirth.Text = "Session: " .. formatNumber(sessionRebirths) .. " | Total: " .. formatNumber(totalRebirths)
+        end
+    end
+end)
+
+-- Auto Fast Rebirth (Swift Samurai farm, Tribal Overlord rebirth)
+getgenv().AutoFarming = false
+
+local function getGoldenRebirthCount()
+    local ultimates = player:FindFirstChild("ultimatesFolder")
+    return (ultimates and ultimates:FindFirstChild("Golden Rebirth")) and ultimates["Golden Rebirth"].Value or 0
+end
+
+local function getStrengthRequiredForRebirth()
+    local rebirths = rebirthStat.Value
+    local base = 10000 + (5000 * rebirths)
+    local golden = getGoldenRebirthCount()
+    if golden >= 1 and golden <= 5 then
+        base = base * (1 - golden * 0.1)
+    end
+    return math.floor(base)
+end
+
+rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
+    getgenv().AutoFarming = state
+    if state then
+        warn("⚡ Auto Rebirth ON")
+        task.spawn(function()
+            while getgenv().AutoFarming do
+                local req = getStrengthRequiredForRebirth()
+                -- Desequipar todo
+                for _, f in pairs(player.petsFolder:GetChildren()) do
+                    if f:IsA("Folder") then
+                        for _, p in pairs(f:GetChildren()) do
+                            pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", p) end)
+                        end
+                    end
+                end
+                task.wait(0.2)
+
+                -- Equipar farm pet
+                local farmPetFound = false
+                for _, f in pairs(player.petsFolder:GetChildren()) do
+                    if f:IsA("Folder") then
+                        for _, p in pairs(f:GetChildren()) do
+                            if p.Name == "Swift Samurai" then
+                                pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", p) end)
+                                farmPetFound = true
+                            end
+                        end
+                    end
+                end
+
+                -- Farm
+                while strengthStat.Value < req and getgenv().AutoFarming do
+                    for _ = 1, 27 do pcall(function() player.muscleEvent:FireServer("rep") end) end
+                    task.wait(0.05)
+                end
+
+                if not getgenv().AutoFarming then break end
+
+                -- Preparar rebirth
+                for _, f in pairs(player.petsFolder:GetChildren()) do
+                    if f:IsA("Folder") then
+                        for _, p in pairs(f:GetChildren()) do
+                            pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", p) end)
+                        end
+                    end
+                end
+                task.wait(0.2)
+
+                local rebirthPetFound = false
+                for _, f in pairs(player.petsFolder:GetChildren()) do
+                    if f:IsA("Folder") then
+                        for _, p in pairs(f:GetChildren()) do
+                            if p.Name == "Tribal Overlord" then
+                                pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", p) end)
+                                rebirthPetFound = true
+                            end
+                        end
+                    end
+                end
+
+                local oldReb = rebirthStat.Value
+                local attempts = 0
+                repeat
+                    pcall(function() game.ReplicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest") end)
+                    task.wait(0.3)
+                    attempts = attempts + 1
+                until rebirthStat.Value > oldReb or attempts > 15 or not getgenv().AutoFarming
+
+                print(rebirthStat.Value > oldReb and "Rebirth exitoso" or "Rebirth falló")
+            end
+            print("Auto Rebirth detenido")
+        end)
+    else
+        warn("Auto Rebirth OFF")
+    end
+end)
+
+-- =====================================================
+-- TAB 2: STRENGTH OP + NUEVA CALCULADORA GAINS REAL-TIME
+-- =====================================================
+
+local strengthTab = Window:AddTab("Strength Op")
+
+getgenv()._AutoRepFarmEnabled = false
+
+-- Config auto rep farm
+local PET_NAMES = {"Swift Samurai", "Sarge"}
+local PROTEIN_EGG_NAME = "ProteinEgg"
+local PROTEIN_EGG_INTERVAL = 30 * 60
+local ROCK_NAME = "Rock5M"
+local ROCK_INTERVAL = 3
+local MAX_PING = 500
+local MIN_PING = 200
+local REP_WAIT_MIN = 0.0003
+local REP_WAIT_MAX = 0.0008
+local farmingPaused = false
+
+local HumanoidRootPart
+local lastProteinEggTime = 0
+local lastRockTime = 0
+
+local function getPing()
+    local s, p = pcall(function() return game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue() end)
+    return s and p or 999
+end
+
+local function updateCharacterRefs()
+    local char = player.Character or player.CharacterAdded:Wait()
+    HumanoidRootPart = char:WaitForChild("HumanoidRootPart", 5)
+end
+
+local function equipBestPet()
+    local pets = player:FindFirstChild("petsFolder")
+    if pets and pets:FindFirstChild("Unique") then
+        for _, name in ipairs(PET_NAMES) do
+            for _, pet in pairs(pets.Unique:GetChildren()) do
+                if pet.Name == name then
+                    pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet) end)
+                    return
+                end
+            end
+        end
+    end
+end
+
+local function eatProteinEgg()
+    if player:FindFirstChild("Backpack") then
+        for _, item in pairs(player.Backpack:GetChildren()) do
+            if item.Name == PROTEIN_EGG_NAME then
+                pcall(function() game.ReplicatedStorage.rEvents.eatEvent:FireServer("eat", item) end)
+                return
+            end
+        end
+    end
+end
+
+local function hitRock()
+    local rock = workspace:FindFirstChild(ROCK_NAME)
+    if rock and HumanoidRootPart then
+        local ox = math.random(-30,30)/10
+        local oz = -(4 + math.random(0,2))
+        HumanoidRootPart.CFrame = rock.CFrame * CFrame.new(ox, 0, oz)
+        task.wait(0.1)
+        pcall(function() game.ReplicatedStorage.rEvents.hitEvent:FireServer("hit", rock) end)
+    end
+end
+
+strengthTab:AddSwitch("Strength Op (Min ping 250ms+)", function(state)
+    getgenv()._AutoRepFarmEnabled = state
+    warn("[Auto Rep] " .. (state and "ON ⚡" or "OFF 🛑"))
+end)
+
+strengthTab:AddLabel("Spam ultra-rápido + ping check + ProteinEgg/Rock")
+
+task.spawn(function()
+    updateCharacterRefs()
+    equipBestPet()
+    lastProteinEggTime = tick()
+    lastRockTime = tick()
+
+    task.spawn(function()
+        while true do
+            if getgenv()._AutoRepFarmEnabled then
+                local ping = getPing()
+                farmingPaused = ping > MAX_PING
+            end
+            task.wait(0.5)
+        end
+    end)
+
+    task.spawn(function()
+        while true do
+            if getgenv()._AutoRepFarmEnabled and not farmingPaused then
+                pcall(function() player.muscleEvent:FireServer("rep") end)
+            end
+            task.wait(math.random(REP_WAIT_MIN*10000, REP_WAIT_MAX*10000)/10000)
+        end
+    end)
+
+    task.spawn(function()
+        while true do
+            if getgenv()._AutoRepFarmEnabled and not farmingPaused then
+                local now = tick()
+                if now - lastProteinEggTime >= PROTEIN_EGG_INTERVAL then
+                    eatProteinEgg()
+                    lastProteinEggTime = now
+                end
+                if now - lastRockTime >= ROCK_INTERVAL then
+                    hitRock()
+                    lastRockTime = now
+                end
+            end
+            task.wait(1)
+        end
+    end)
+
+    player.CharacterAdded:Connect(function()
+        task.wait(3)
+        updateCharacterRefs()
+        equipBestPet()
+    end)
+end)
+
+-- Nueva calculadora gains real-time (reemplaza la anterior)
+strengthTab:AddLabel(" ").TextSize = 10
+strengthTab:AddLabel("📈 Gains Real-Time (Strength & Durability)").TextSize = 18
+
+local stopwatchLabel = strengthTab:AddLabel("Fast Rep Time: 0d 0h 0m 0s")
+stopwatchLabel.TextSize = 20
+
+local projectedStrengthLabel = strengthTab:AddLabel("Strength Rate: 0 /Hour | 0 /Day | 0 /Week | 0 /Month")
+projectedStrengthLabel.TextSize = 18
+
+local projectedDurabilityLabel = strengthTab:AddLabel("Durability Rate: 0 /Hour | 0 /Day | 0 /Week | 0 /Month")
+projectedDurabilityLabel.TextSize = 18
+
+strengthTab:AddLabel(" ").TextSize = 10
+
+local statsLabel = strengthTab:AddLabel("Stats Actuales:")
+statsLabel.TextSize = 24
+
+local strengthLabel = strengthTab:AddLabel("Strength: 0 | Gained: 0")
+strengthLabel.TextSize = 20
+
+local durabilityLabel = strengthTab:AddLabel("Durability: 0 | Gained: 0")
+durabilityLabel.TextSize = 20
+
+local startTime = tick()
+local initialStrength = strengthStat.Value
+local initialDurability = durabilityStat and durabilityStat.Value or 0
+local trackingStarted = false
+
+local strengthHistory = {}
+local durabilityHistory = {}
+local calculationInterval = 10
+
+task.spawn(function()
+    local lastCalcTime = tick()
+    while true do
+        local currentTime = tick()
+        local currentStrength = strengthStat.Value
+        local currentDurability = durabilityStat and durabilityStat.Value or 0
+
+        if not trackingStarted and (currentStrength - initialStrength) >= 100e9 then
+            trackingStarted = true
+            startTime = tick()
+            initialStrength = currentStrength
+            initialDurability = currentDurability
+            strengthHistory = {}
+            durabilityHistory = {}
+        end
+
+        if trackingStarted then
+            local elapsed = currentTime - startTime
+            local days = math.floor(elapsed / 86400)
+            local hours = math.floor((elapsed % 86400) / 3600)
+            local mins = math.floor((elapsed % 3600) / 60)
+            local secs = math.floor(elapsed % 60)
+            stopwatchLabel.Text = string.format("Fast Rep Time: %dd %dh %dm %ds", days, hours, mins, secs)
+
+            local gainedStr = currentStrength - initialStrength
+            local gainedDur = currentDurability - initialDurability
+
+            strengthLabel.Text = "Strength: " .. formatNumber(currentStrength) .. " | Gained: " .. formatNumber(gainedStr)
+            durabilityLabel.Text = "Durability: " .. formatNumber(currentDurability) .. " | Gained: " .. formatNumber(gainedDur)
+
+            table.insert(strengthHistory, {time = currentTime, value = currentStrength})
+            table.insert(durabilityHistory, {time = currentTime, value = currentDurability})
+
+            while #strengthHistory > 0 and currentTime - strengthHistory[1].time > calculationInterval do
+                table.remove(strengthHistory, 1)
+            end
+            while #durabilityHistory > 0 and currentTime - durabilityHistory[1].time > calculationInterval do
+                table.remove(durabilityHistory, 1)
+            end
+
+            if currentTime - lastCalcTime >= calculationInterval then
+                lastCalcTime = currentTime
+
+                if #strengthHistory >= 2 then
+                    local delta = strengthHistory[#strengthHistory].value - strengthHistory[1].value
+                    local perSec = delta / calculationInterval
+                    projectedStrengthLabel.Text = "Strength Rate: " .. formatNumber(math.floor(perSec * 3600)) .. "/Hour | " ..
+                                                  formatNumber(math.floor(perSec * 86400)) .. "/Day | " ..
+                                                  formatNumber(math.floor(perSec * 604800)) .. "/Week | " ..
+                                                  formatNumber(math.floor(perSec * 2592000)) .. "/Month"
+                end
+
+                if #durabilityHistory >= 2 then
+                    local delta = durabilityHistory[#durabilityHistory].value - durabilityHistory[1].value
+                    local perSec = delta / calculationInterval
+                    projectedDurabilityLabel.Text = "Durability Rate: " .. formatNumber(math.floor(perSec * 3600)) .. "/Hour | " ..
+                                                    formatNumber(math.floor(perSec * 86400)) .. "/Day | " ..
+                                                    formatNumber(math.floor(perSec * 604800)) .. "/Week | " ..
+                                                    formatNumber(math.floor(perSec * 2592000)) .. "/Month"
+                end
+            end
+        end
+
+        task.wait(0.05)
+    end
+end)
+
+print("🛠️ GenX Hub FULL Cargado con nueva calculadora de gains real-time. Activa switches y farmea, MONARCA! 💪🔴🔵")
