@@ -5,7 +5,7 @@
 
 local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/imhenne187/libvariations/refs/heads/main/librarys/red.luau"))()
 
-local Window = bd:AddWindow("GenX | Farming", {
+local Window = bd:AddWindow("The StrongestRework| Farming", {
     min_size = Vector2.new(450, 450),
     background = {
         [1] = Color3.fromRGB(10, 20, 60),
@@ -242,16 +242,18 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
 end)
 
 -- =====================================================
--- TAB 2: STRENGTH OP (con Eat Egg)
+-- STRENGTH OP - FUERZA COMPLETA Y PERFECTA (2026)
+-- Auto Rep Farm + Eat Egg (30 Min) + Calculadora Gains Real-Time
 -- =====================================================
 
 local strengthTab = Window:AddTab("Strength Op")
 
 getgenv()._AutoRepFarmEnabled = false
 
+-- Configuración
 local PET_NAMES = {"Swift Samurai", "Sarge"}
 local PROTEIN_EGG_NAME = "Protein Egg"
-local PROTEIN_EGG_INTERVAL = 30 * 60
+local PROTEIN_EGG_INTERVAL = 30 * 60  -- 30 minutos
 local ROCK_NAME = "Rock5M"
 local ROCK_INTERVAL = 3
 local MAX_PING = 500
@@ -265,8 +267,10 @@ local lastProteinEggTime = 0
 local lastRockTime = 0
 
 local function getPing()
-    local s, p = pcall(function() return game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue() end)
-    return s and p or 999
+    local success, ping = pcall(function()
+        return game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
+    end)
+    return success and ping or 999
 end
 
 local function updateCharacterRefs()
@@ -280,54 +284,69 @@ local function equipBestPet()
         for _, petName in ipairs(PET_NAMES) do
             for _, pet in pairs(petsFolder.Unique:GetChildren()) do
                 if pet.Name == petName then
-                    pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet) end)
+                    pcall(function()
+                        game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+                    end)
+                    print("[Strength Op] Equipped pet: " .. petName)
                     return
                 end
             end
         end
+        warn("[Strength Op] No optimal pet found!")
     end
 end
 
+-- Función Eat Protein Egg (tu código exacto)
 local function eatProteinEggNew()
     local backpack = player:WaitForChild("Backpack", 5)
     local character = player.Character or player.CharacterAdded:Wait()
 
-    if not backpack or not character then return end
+    if not backpack or not character then
+        warn("[AutoEgg] Backpack o Character no disponibles.")
+        return
+    end
 
     local egg = backpack:FindFirstChild(PROTEIN_EGG_NAME)
     if egg then
         egg.Parent = character
         task.wait(0.1)
-        pcall(function() egg:Activate() end)
-        print("[AutoEgg] Protein Egg consumido.")
+        pcall(function()
+            egg:Activate()
+            print("[AutoEgg] Protein Egg consumido.")
+        end)
     else
-        warn("[AutoEgg] No se encontró Protein Egg.")
+        warn("[AutoEgg] No se encontró Protein Egg en Backpack.")
     end
 end
 
 local function hitRock()
     local rock = workspace:FindFirstChild(ROCK_NAME)
     if rock and HumanoidRootPart then
-        local ox = math.random(-30,30)/10
-        local oz = -(4 + math.random(0,2))
-        HumanoidRootPart.CFrame = rock.CFrame * CFrame.new(ox, 0, oz)
+        local offsetX = math.random(-30, 30) / 10
+        local offsetZ = -(4 + math.random(0, 2))
+        HumanoidRootPart.CFrame = rock.CFrame * CFrame.new(offsetX, 0, offsetZ)
         task.wait(0.1)
-        pcall(function() game.ReplicatedStorage.rEvents.hitEvent:FireServer("hit", rock) end)
+        pcall(function()
+            game.ReplicatedStorage.rEvents.hitEvent:FireServer("hit", rock)
+        end)
     end
 end
 
+-- Toggle principal Auto Rep Farm
 strengthTab:AddSwitch("Strength Op (Min ping 250ms+)", function(state)
     getgenv()._AutoRepFarmEnabled = state
-    warn("[Strength Op] " .. (state and "ON ⚡" or "OFF 🛑"))
+    warn("[Strength Op] " .. (state and "ACTIVADO ⚡" or "DESACTIVADO 🛑"))
 end)
 
+-- Toggle Eat Egg (30 Min)
 local autoEatEnabled = false
 
 strengthTab:AddSwitch("Eat Egg (30 Min)", function(state)
     autoEatEnabled = state
-    print(state and "[AutoEgg] ACTIVADO" or "[AutoEgg] DESACTIVADO")
+    print(state and "[AutoEgg] ACTIVADO → Comerá cada 30 min" or "[AutoEgg] DESACTIVADO")
 end)
 
+-- Loop Auto Eat Egg
 task.spawn(function()
     while true do
         if autoEatEnabled then
@@ -339,32 +358,40 @@ task.spawn(function()
     end
 end)
 
--- Setup auto rep farm
+-- Setup principal Auto Rep Farm (más reps, más rápido)
 task.spawn(function()
     updateCharacterRefs()
     equipBestPet()
     lastProteinEggTime = tick()
     lastRockTime = tick()
 
+    -- Monitor ping
     task.spawn(function()
         while true do
             if getgenv()._AutoRepFarmEnabled then
                 local ping = getPing()
                 farmingPaused = ping > MAX_PING
+                if farmingPaused then
+                    warn("[Strength Op] Ping alto (" .. math.floor(ping) .. "ms) → Pausado")
+                end
             end
             task.wait(0.5)
         end
     end)
 
+    -- Spam reps (más rápido y agresivo)
     task.spawn(function()
         while true do
             if getgenv()._AutoRepFarmEnabled and not farmingPaused then
-                pcall(function() player.muscleEvent:FireServer("rep") end)
+                for _ = 1, 100 do  -- + reps por ciclo
+                    pcall(function() player.muscleEvent:FireServer("rep") end)
+                end
             end
-            task.wait(math.random(REP_WAIT_MIN*10000, REP_WAIT_MAX*10000)/10000)
+            task.wait(math.random(REP_WAIT_MIN * 10000, REP_WAIT_MAX * 10000) / 10000)
         end
     end)
 
+    -- Rock5M
     task.spawn(function()
         while true do
             if getgenv()._AutoRepFarmEnabled and not farmingPaused then
@@ -382,18 +409,25 @@ task.spawn(function()
         task.wait(3)
         updateCharacterRefs()
         equipBestPet()
+        warn("[Strength Op] Respawn detectado → Re-equip pet")
     end)
+
+    print("[Strength Op] Sistema de fuerza cargado completo!")
 end)
 
--- Calculadora gains real-time
+-- Calculadora gains real-time (más específica, muestra por día destacado)
 strengthTab:AddLabel(" ").TextSize = 10
-strengthTab:AddLabel("📈 Gains Real-Time").TextSize = 18
+strengthTab:AddLabel("📈 Gains Real-Time (Strength & Durability)").TextSize = 18
 
 local stopwatchLabel = strengthTab:AddLabel("Fast Rep Time: 0d 0h 0m 0s")
 stopwatchLabel.TextSize = 20
 
 local projectedStrengthLabel = strengthTab:AddLabel("Strength Rate: 0 /Hour | 0 /Day | 0 /Week | 0 /Month")
 projectedStrengthLabel.TextSize = 18
+
+local dailyStrengthLabel = strengthTab:AddLabel("Strength por Día: 0")  -- Label destacado para por día
+dailyStrengthLabel.TextSize = 20
+dailyStrengthLabel.TextColor3 = Color3.fromRGB(0, 255, 150)  -- Verde lima
 
 local strengthLabel = strengthTab:AddLabel("Strength: 0 | Gained: 0")
 strengthLabel.TextSize = 20
@@ -445,6 +479,10 @@ task.spawn(function()
                                                   formatNumber(math.floor(perSec * 86400)) .. "/Day | " ..
                                                   formatNumber(math.floor(perSec * 604800)) .. "/Week | " ..
                                                   formatNumber(math.floor(perSec * 2592000)) .. "/Month"
+
+                    -- Label destacado por día
+                    local dailyStrength = math.floor(perSec * 86400)
+                    dailyStrengthLabel.Text = "Strength por Día: " .. formatNumber(dailyStrength)
                 end
             end
         end
@@ -452,7 +490,7 @@ task.spawn(function()
         task.wait(0.05)
     end
 end)
-         
+
 local miscTab = Window:AddTab("Misc")
 
 miscTab:AddLabel("Utilidades básicas").TextSize = 18
