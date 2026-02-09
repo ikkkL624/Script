@@ -135,80 +135,113 @@ end)
 -- Auto Rebirth ultra-rápido (fix renace exacto con .Changed en strength)
 getgenv().AutoFarming = false
 
+-- Auto Rebirth - Versión FIX (renace EXACTO al required, no se pasa)
+getgenv().AutoFarming = false
+
 rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
     getgenv().AutoFarming = state
+    
     if state then
-        warn("⚡ Auto Rebirth ACTIVADO - Fix renace exacto")
+        warn("⚡ Auto Rebirth ACTIVADO - Renace exacto al required")
         task.spawn(function()
             while getgenv().AutoFarming do
-                local req = getStrengthRequiredForRebirth()
-                -- Desequipar
-                for _, f in pairs(player.petsFolder:GetChildren()) do
-                    if f:IsA("Folder") then
-                        for _, p in pairs(f:GetChildren()) do
-                            pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", p) end)
+                -- Calcular required strength (ajusta fórmula si tienes Golden Rebirths)
+                local requiredStrength = 10000 + (5000 * rebirthStat.Value)  -- base simple
+                
+                -- Desequipar pets rápidamente
+                for _, folder in pairs(player.petsFolder:GetChildren()) do
+                    if folder:IsA("Folder") then
+                        for _, pet in pairs(folder:GetChildren()) do
+                            pcall(function()
+                                game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+                            end)
                         end
                     end
                 end
                 task.wait(0.05)
 
-                -- Equipar farm pet
-                for _, f in pairs(player.petsFolder:GetChildren()) do
-                    if f:IsA("Folder") then
-                        for _, p in pairs(f:GetChildren()) do
-                            if p.Name == "Swift Samurai" then
-                                pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", p) end)
+                -- Equipar pet de farm (Swift Samurai)
+                local farmEquipped = false
+                for _, folder in pairs(player.petsFolder:GetChildren()) do
+                    if folder:IsA("Folder") then
+                        for _, pet in pairs(folder:GetChildren()) do
+                            if pet.Name == "Swift Samurai" then
+                                pcall(function()
+                                    game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+                                    farmEquipped = true
+                                end)
                             end
                         end
                     end
                 end
+                if not farmEquipped then warn("[AutoRebirth] No se encontró Swift Samurai") end
 
-                -- Farm con chequeo real-time
-                local strengthConnection
-                strengthConnection = strengthStat.Changed:Connect(function(newStrength)
-                    if newStrength >= req then
-                        strengthConnection:Disconnect()
-                        -- Proceder a rebirth inmediatamente
+                -- Farm hasta required (con chequeo real-time vía .Changed)
+                local strengthReached = false
+                local strengthConn
+                strengthConn = strengthStat.Changed:Connect(function(newVal)
+                    if newVal >= requiredStrength then
+                        strengthReached = true
+                        strengthConn:Disconnect()
                     end
                 end)
 
-                while strengthStat.Value < req and getgenv().AutoFarming do
-                    for _ = 1, 80 do pcall(function() player.muscleEvent:FireServer("rep") end) end
+                while not strengthReached and getgenv().AutoFarming do
+                    for _ = 1, 80 do
+                        pcall(function() player.muscleEvent:FireServer("rep") end)
+                    end
                     task.wait(0.01)
                 end
 
-                if strengthConnection then strengthConnection:Disconnect() end
+                if strengthConn then strengthConn:Disconnect() end
                 if not getgenv().AutoFarming then break end
 
-                -- Preparar rebirth
-                for _, f in pairs(player.petsFolder:GetChildren()) do
-                    if f:IsA("Folder") then
-                        for _, p in pairs(f:GetChildren()) do
-                            pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", p) end)
+                warn("[AutoRebirth] Strength alcanzada (" .. formatNumber(strengthStat.Value) .. ") → Iniciando rebirth")
+
+                -- Preparar rebirth (desequipar todo)
+                for _, folder in pairs(player.petsFolder:GetChildren()) do
+                    if folder:IsA("Folder") then
+                        for _, pet in pairs(folder:GetChildren()) do
+                            pcall(function()
+                                game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+                            end)
                         end
                     end
                 end
                 task.wait(0.05)
 
-                -- Equipar rebirth pet
-                for _, f in pairs(player.petsFolder:GetChildren()) do
-                    if f:IsA("Folder") then
-                        for _, p in pairs(f:GetChildren()) do
-                            if p.Name == "Tribal Overlord" then
-                                pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", p) end)
+                -- Equipar pet de rebirth (Tribal Overlord)
+                local rebirthEquipped = false
+                for _, folder in pairs(player.petsFolder:GetChildren()) do
+                    if folder:IsA("Folder") then
+                        for _, pet in pairs(folder:GetChildren()) do
+                            if pet.Name == "Tribal Overlord" then
+                                pcall(function()
+                                    game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+                                    rebirthEquipped = true
+                                end)
                             end
                         end
                     end
                 end
+                if not rebirthEquipped then warn("[AutoRebirth] No se encontró Tribal Overlord") end
 
-                -- Spam rebirth
-                local old = rebirthStat.Value
+                -- Spam rebirth hasta que suba (delay ultra-bajo, max 50 attempts)
+                local oldRebirths = rebirthStat.Value
                 local attempts = 0
                 repeat
-                    pcall(function() game.ReplicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest") end)
-                    task.wait(0.04)
+                    pcall(function()
+                        game.ReplicatedStorage.rEvents.rebirthRemote:InvokeServer("rebirthRequest")
+                    end)
+                    task.wait(0.03)  -- delay reducido para más velocidad
                     attempts = attempts + 1
-                until rebirthStat.Value > old or attempts > 50 or not getgenv().AutoFarming
+                until rebirthStat.Value > oldRebirths or attempts > 50 or not getgenv().AutoFarming
+
+                if rebirthStat.Value > oldRebirths then
+                    print("[AutoRebirth] ÉXITO - Rebirth #" .. rebirthStat.Value)
+                else
+                    warn("[AutoRebirth] Falló después de " .. attempts .. " attempts - Chequea required o remote")
+                end
             end
             warn("Auto Rebirth DETENIDO")
         end)
