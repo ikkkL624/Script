@@ -1,6 +1,6 @@
 local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/red.luau"))()
 
-local Window = bd:AddWindow("The StrongestRework | Farming", {
+local Window = bd:AddWindow("The Strongest Rework | Farming", {
     min_size = Vector2.new(450, 450),
     background = {
         [1] = Color3.fromRGB(255, 230, 240),
@@ -490,12 +490,138 @@ local miscTab = Window:AddTab("Misc")
 
 miscTab:AddLabel("Utilidades básicas").TextSize = 18
 
--- Anti-AFK con GUI
 getgenv().AntiAfkExecuted = false
 getgenv().zamanbaslaticisi = false
 
-miscTab:AddSwitch("Anti AFK (GUI + Timer)", function(state)
-    -- (código completo de Anti-AFK que ya tenías, mantenido igual)
+miscTab:AddSwitch("Anti AFK (No te kicks)", function(state)
+    if state then
+        -- ACTIVAR
+        if getgenv().AntiAfkExecuted then 
+            getgenv().AntiAfkExecuted = false
+            getgenv().zamanbaslaticisi = false
+            if game.CoreGui:FindFirstChild("AntiAfkGUI") then
+                game.CoreGui.AntiAfkGUI:Destroy()
+            end
+        end
+        
+        getgenv().AntiAfkExecuted = true
+
+        -- Crear GUI simple y bonita
+        local gui = Instance.new("ScreenGui")
+        gui.Name = "AntiAfkGUI"
+        gui.Parent = game.CoreGui
+        gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+        local frame = Instance.new("Frame")
+        frame.Parent = gui
+        frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        frame.Position = UDim2.new(0.85, 0, 0.05, 0)
+        frame.Size = UDim2.new(0, 180, 0, 80)
+        local corner = Instance.new("UICorner", frame)
+
+        local title = Instance.new("TextLabel")
+        title.Parent = frame
+        title.BackgroundTransparency = 1
+        title.Size = UDim2.new(1, 0, 0, 25)
+        title.Text = "Anti-AFK Activo"
+        title.TextColor3 = Color3.fromRGB(255, 105, 180)
+        title.TextSize = 18
+        title.Font = Enum.Font.SourceSansBold
+
+        local timerLbl = Instance.new("TextLabel")
+        timerLbl.Parent = frame
+        timerLbl.BackgroundTransparency = 1
+        timerLbl.Position = UDim2.new(0, 0, 0.3, 0)
+        timerLbl.Size = UDim2.new(1, 0, 0, 30)
+        timerLbl.Text = "Tiempo: 0:0:0"
+        timerLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        timerLbl.TextSize = 16
+
+        local closeBtn = Instance.new("TextButton")
+        closeBtn.Parent = frame
+        closeBtn.BackgroundTransparency = 1
+        closeBtn.Position = UDim2.new(0.85, 0, 0, 0)
+        closeBtn.Size = UDim2.new(0, 25, 0, 25)
+        closeBtn.Text = "X"
+        closeBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
+        closeBtn.TextSize = 20
+        closeBtn.MouseButton1Click:Connect(function()
+            getgenv().AntiAfkExecuted = false
+            getgenv().zamanbaslaticisi = false
+            gui:Destroy()
+        end)
+
+        -- Draggable
+        local dragging, dragInput, dragStart, startPos
+        local function update(input)
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then dragging = false end
+                end)
+            end
+        end)
+
+        frame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if input == dragInput and dragging then update(input) end
+        end)
+
+        -- Múltiples métodos Anti-AFK
+        local vu = game:GetService("VirtualUser")
+        player.Idled:Connect(function()
+            vu:CaptureController()
+            vu:ClickButton2(Vector2.new())
+        end)
+
+        -- Método extra: movimiento + salto
+        task.spawn(function()
+            while getgenv().AntiAfkExecuted do
+                if player.Character and player.Character:FindFirstChild("Humanoid") then
+                    local humanoid = player.Character.Humanoid
+                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                    humanoid.WalkSpeed = humanoid.WalkSpeed + 0.1
+                    task.wait(0.1)
+                    humanoid.WalkSpeed = humanoid.WalkSpeed - 0.1
+                end
+                task.wait(55)  -- cada \~1 minuto
+            end
+        end)
+
+        -- Timer en GUI
+        local seconds, minutes, hours = 0, 0, 0
+        getgenv().zamanbaslaticisi = true
+        task.spawn(function()
+            while getgenv().zamanbaslaticisi do
+                task.wait(1)
+                seconds = seconds + 1
+                if seconds >= 60 then seconds = 0 minutes = minutes + 1 end
+                if minutes >= 60 then minutes = 0 hours = hours + 1 end
+                timerLbl.Text = "Tiempo: " .. hours .. ":" .. minutes .. ":" .. seconds
+            end
+        end)
+
+    else
+        -- DESACTIVAR
+        getgenv().AntiAfkExecuted = false
+        getgenv().zamanbaslaticisi = false
+        if game.CoreGui:FindFirstChild("AntiAfkGUI") then
+            game.CoreGui.AntiAfkGUI:Destroy()
+        end
+        warn("[Misc] Anti-AFK DESACTIVADO")
+    end
 end)
 
 -- Hide All Frames
@@ -513,7 +639,7 @@ miscTab:AddSwitch("Hide All Frames", function(state)
 end)
 
 -- Cambio Día/Noche
-miscTab:AddSwitch("Forzar Día / Noche", function(state)
+miscTab:AddSwitch("Noche", function(state)
     local Lighting = game:GetService("Lighting")
     if state then
         Lighting.ClockTime = 0
@@ -559,5 +685,3 @@ miscTab:AddSwitch("Anti-Lag (Pantalla Negra)", function(state)
         warn("[Misc] ANTI-LAG DESACTIVADO")
     end
 end)
-
-print("🛠️ GenX Hub COMPLETO con tema ROSA CLARO y FUERTE Cargado! Disfruta el nuevo look, MONARCA! 💖🔴🔵")
