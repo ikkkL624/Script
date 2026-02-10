@@ -79,9 +79,11 @@ local toggleTrack, _ = rebirthTab:AddSwitch("Start Tracking", function(state)
         rebirthHistory = {}
         lblTimer.TextColor3 = Color3.fromRGB(255, 182, 193)
         lblTimer.Text = "0d 0h 0m 0s - Active"
+        print("[Rebirth Calc] Tracking INICIADO")
     else
         lblTimer.TextColor3 = Color3.fromRGB(255, 20, 147)
         lblTimer.Text = formatTime(tick() - startTimeRebirth) .. " - Inactive"
+        print("[Rebirth Calc] Tracking DETENIDO")
     end
 end)
 
@@ -91,6 +93,18 @@ rebirthTab:AddButton("Reset Gained", function()
     lblRebirthsInfo.Text = "Rebirths actuales: " .. formatNumberWithCommas(rebirthStat.Value) .. " | Gained: 0"
 end)
 
+-- Función para formatear con comas exactas
+local function formatNumberWithCommas(number)
+    local formatted = tostring(math.floor(number))
+    local k
+    while true do
+        formatted, k = formatted:gsub("^(-?%d+)(%d%d%d)", '%1,%2')
+        if k == 0 then break end
+    end
+    return formatted
+end
+
+-- Detector principal (doble método: .Changed + polling respaldo)
 local lastRebirthValue = rebirthStat.Value
 rebirthStat.Changed:Connect(function(newValue)
     if newValue > lastRebirthValue then
@@ -98,11 +112,30 @@ rebirthStat.Changed:Connect(function(newValue)
         if tracking then
             gainedRebirths = gainedRebirths + gained
             table.insert(rebirthHistory, {time = tick(), value = newValue})
+            print("[Rebirth Calc] Detectado rebirth! Total gained: " .. gainedRebirths)
         end
         lastRebirthValue = newValue
     end
 end)
 
+-- Polling respaldo (cada 0.1s para capturar todo)
+task.spawn(function()
+    while true do
+        task.wait(0.1)
+        local current = rebirthStat.Value
+        if current > lastRebirthValue then
+            local gained = current - lastRebirthValue
+            if tracking then
+                gainedRebirths = gainedRebirths + gained
+                table.insert(rebirthHistory, {time = tick(), value = current})
+                print("[Rebirth Calc] Polling detectó rebirth! Total gained: " .. gainedRebirths)
+            end
+            lastRebirthValue = current
+        end
+    end
+end)
+
+-- Update UI y rates (cada 1s)
 task.spawn(function()
     local lastCalc = tick()
     while true do
