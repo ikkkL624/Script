@@ -523,7 +523,7 @@ miscTab:AddSwitch("Anti AFK", function(state)
         title.Parent = frame
         title.BackgroundTransparency = 1
         title.Size = UDim2.new(1, 0, 0, 25)
-        title.Text = "Anti-AFK Activo"
+        title.Text = "The Strongest Rework"
         title.TextColor3 = Color3.fromRGB(255, 105, 180)
         title.TextSize = 18
         title.Font = Enum.Font.SourceSansBold
