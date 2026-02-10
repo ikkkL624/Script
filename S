@@ -225,10 +225,24 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
     getgenv().AutoFarming = state
     
     if state then
-        warn("⚡ Auto Rebirth ACTIVADO")
+        warn("⚡ Auto Rebirth ACTIVADO - 300 reps/ciclo (seguro)")
         task.spawn(function()
             while getgenv().AutoFarming do
-                local req = 300 + (5000 * rebirthStat.Value)
+                -- Required strength (con Golden bonus)
+                local rebirths = rebirthStat.Value
+                local base = 10000 + (5000 * rebirths)
+                local golden = 0
+                local ultimates = player:FindFirstChild("ultimatesFolder")
+                if ultimates and ultimates:FindFirstChild("Golden Rebirth") then
+                    golden = ultimates["Golden Rebirth"].Value
+                end
+                if golden >= 1 and golden <= 5 then
+                    base = base * (1 - golden * 0.1)
+                end
+                local required = math.floor(base)
+                print("[AutoRebirth] Required: " .. formatNumber(required))
+
+                -- Desequipar pets
                 for _, folder in pairs(player.petsFolder:GetChildren()) do
                     if folder:IsA("Folder") then
                         for _, pet in pairs(folder:GetChildren()) do
@@ -238,6 +252,7 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
                 end
                 task.wait(0.05)
 
+                -- Equipar farm pet
                 for _, folder in pairs(player.petsFolder:GetChildren()) do
                     if folder:IsA("Folder") then
                         for _, pet in pairs(folder:GetChildren()) do
@@ -248,13 +263,22 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
                     end
                 end
 
-                while strengthStat.Value < req and getgenv().AutoFarming do
-                    for _ = 1, 80 do pcall(function() player.muscleEvent:FireServer("rep") end) end
-                    task.wait(0.01)
+                -- Farm hasta required (con 300 reps/ciclo repartidas)
+                while strengthStat.Value < required and getgenv().AutoFarming do
+                    for block = 1, 3 do  -- 3 bloques de 100 reps cada uno
+                        for _ = 1, 100 do
+                            pcall(function() player.muscleEvent:FireServer("rep") end)
+                        end
+                        task.wait(0.08)  -- delay entre bloques (evita spam masivo)
+                    end
+                    task.wait(0.1)  -- delay extra por ciclo completo
                 end
 
                 if not getgenv().AutoFarming then break end
 
+                print("[AutoRebirth] Strength alcanzada → Rebirth")
+
+                -- Desequipar todo
                 for _, folder in pairs(player.petsFolder:GetChildren()) do
                     if folder:IsA("Folder") then
                         for _, pet in pairs(folder:GetChildren()) do
@@ -264,6 +288,7 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
                 end
                 task.wait(0.05)
 
+                -- Equipar rebirth pet
                 for _, folder in pairs(player.petsFolder:GetChildren()) do
                     if folder:IsA("Folder") then
                         for _, pet in pairs(folder:GetChildren()) do
@@ -274,6 +299,7 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
                     end
                 end
 
+                -- Spam rebirth
                 local oldRebirth = rebirthStat.Value
                 local attempts = 0
                 repeat
