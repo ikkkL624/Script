@@ -685,3 +685,74 @@ miscTab:AddSwitch("Anti-Lag (Pantalla Negra)", function(state)
         warn("[Misc] ANTI-LAG DESACTIVADO")
     end
 end)
+
+miscTab:AddButton("Equip Swift Samurai (Max 8)", function()
+    local petsFolder = player:FindFirstChild("petsFolder")
+    if not petsFolder then 
+        warn("[Misc] petsFolder no encontrado")
+        return 
+    end
+
+    -- Desequipar todos los pets primero
+    for _, folder in pairs(petsFolder:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in pairs(folder:GetChildren()) do
+                pcall(function()
+                    game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+                end)
+            end
+        end
+    end
+    task.wait(0.1)
+
+    -- Equipar hasta 8 Swift Samurai
+    local equipped = 0
+    local maxEquip = 8
+    for _, folder in pairs(petsFolder:GetChildren()) do
+        if folder:IsA("Folder") then
+            for _, pet in pairs(folder:GetChildren()) do
+                if pet.Name == "Swift Samurai" then
+                    pcall(function()
+                        game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+                    end)
+                    equipped = equipped + 1
+                    print("[Misc] Equipped Swift Samurai #" .. equipped)
+
+                    if equipped >= maxEquip then
+                        print("[Misc] Máximo 8 Swift Samurai equipados")
+                        return
+                    end
+                end
+            end
+        end
+    end
+    print("[Misc] Equipped " .. equipped .. " Swift Samurai (de 8)")
+end)
+
+-- Switch: Spin Fortune Wheel
+getgenv().AutoSpinWheel = false
+
+miscTab:AddSwitch("Spin Fortune Wheel", function(state)
+    getgenv().AutoSpinWheel = state
+
+    if state then
+        warn("[Misc] Auto Spin Fortune Wheel ACTIVADO")
+        task.spawn(function()
+            while getgenv().AutoSpinWheel do
+                pcall(function()
+                    game.ReplicatedStorage.rEvents.openFortuneWheelRemote:InvokeServer(
+                        "openFortuneWheel",
+                        game.ReplicatedStorage.fortuneWheelChances["Fortune Wheel"]
+                    )
+                end)
+                task.wait(0.1)
+            end
+        end)
+    else
+        warn("[Misc] Auto Spin Fortune Wheel DESACTIVADO")
+    end
+end)
+
+miscTab:AddLabel(" ")
+miscTab:AddLabel("Equip Swift Samurai: Desequipa todo y equipa max 8")
+miscTab:AddLabel("Spin Wheel: Gira ruleta cada 0.1s automáticamente")
