@@ -493,7 +493,7 @@ miscTab:AddLabel("Utilidades básicas").TextSize = 18
 getgenv().AntiAfkExecuted = false
 getgenv().zamanbaslaticisi = false
 
-miscTab:AddSwitch("Anti AFK (No te kicks)", function(state)
+miscTab:AddSwitch("Anti AFK", function(state)
     if state then
         -- ACTIVAR
         if getgenv().AntiAfkExecuted then 
@@ -508,7 +508,7 @@ miscTab:AddSwitch("Anti AFK (No te kicks)", function(state)
 
         -- Crear GUI simple y bonita
         local gui = Instance.new("ScreenGui")
-        gui.Name = "AntiAfkGUI"
+        gui.Name = "The Strongest"
         gui.Parent = game.CoreGui
         gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -584,20 +584,6 @@ miscTab:AddSwitch("Anti AFK (No te kicks)", function(state)
         player.Idled:Connect(function()
             vu:CaptureController()
             vu:ClickButton2(Vector2.new())
-        end)
-
-        -- Método extra: movimiento + salto
-        task.spawn(function()
-            while getgenv().AntiAfkExecuted do
-                if player.Character and player.Character:FindFirstChild("Humanoid") then
-                    local humanoid = player.Character.Humanoid
-                    humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                    humanoid.WalkSpeed = humanoid.WalkSpeed + 0.1
-                    task.wait(0.1)
-                    humanoid.WalkSpeed = humanoid.WalkSpeed - 0.1
-                end
-                task.wait(55)  -- cada \~1 minuto
-            end
         end)
 
         -- Timer en GUI
