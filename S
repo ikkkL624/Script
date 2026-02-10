@@ -228,7 +228,7 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
         warn("⚡ Auto Rebirth ACTIVADO")
         task.spawn(function()
             while getgenv().AutoFarming do
-                local req = 10000 + (5000 * rebirthStat.Value)
+                local req = 300 + (5000 * rebirthStat.Value)
                 for _, folder in pairs(player.petsFolder:GetChildren()) do
                     if folder:IsA("Folder") then
                         for _, pet in pairs(folder:GetChildren()) do
