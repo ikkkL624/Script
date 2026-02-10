@@ -783,7 +783,3 @@ miscTab:AddSwitch("Spin Fortune Wheel", function(state)
         warn("[Misc] Auto Spin Fortune Wheel DESACTIVADO")
     end
 end)
-
-miscTab:AddLabel(" ")
-miscTab:AddLabel("Equip Swift Samurai: Desequipa todo y equipa max 8")
-miscTab:AddLabel("Spin Wheel: Gira ruleta cada 0.1s automáticamente")
