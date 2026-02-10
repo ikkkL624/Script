@@ -431,13 +431,18 @@ task.spawn(function()
     end)
 
     task.spawn(function()
-        while true do
-            if getgenv()._AutoRepFarmEnabled and not farmingPaused then
-                pcall(function() player.muscleEvent:FireServer("rep") end)
+    while true do
+        if getgenv()._AutoRepFarmEnabled and not farmingPaused then
+            for block = 1, 5 do  -- 5 bloques de 50 reps cada uno = 250 total
+                for _ = 1, 50 do
+                    pcall(function() player.muscleEvent:FireServer("rep") end)
+                end
+                task.wait(0.01)  -- delay pequeño entre bloques (evita spam masivo)
             end
-            task.wait(math.random(REP_WAIT_MIN*10000, REP_WAIT_MAX*10000)/10000)
         end
-    end)
+        task.wait(math.random(40, 80)/1000)  -- delay random 0.04–0.08s entre ciclos completos
+    end
+end)
 
     task.spawn(function()
         while true do
