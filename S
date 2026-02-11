@@ -423,16 +423,23 @@ task.spawn(function()
     end)
 
     task.spawn(function()
+    local spamCounter = 0
     while true do
         if getgenv()._AutoRepFarmEnabled and not farmingPaused then
-            for block = 1, 5 do  -- 5 bloques de 50 reps cada uno = 250 total
+            for block = 1, 8 do  -- 8 bloques de 50 reps = 400 total
                 for _ = 1, 50 do
                     pcall(function() player.muscleEvent:FireServer("rep") end)
                 end
-                task.wait(0.01)  -- delay pequeño entre bloques (evita spam masivo)
+                task.wait(0.008)  -- delay entre bloques
+            end
+            
+            spamCounter = spamCounter + 1
+            if spamCounter >= 90 then  -- pausa cada \~90s de spam continuo
+                task.wait(4)  -- pausa anti-kick
+                spamCounter = 0
             end
         end
-        task.wait(math.random(40, 80)/1000)  -- delay random 0.04–0.08s entre ciclos completos
+        task.wait(math.random(30, 70)/1000)  -- delay random 0.03–0.07s entre ciclos
     end
 end)
 
