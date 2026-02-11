@@ -96,10 +96,6 @@ local function formatNumber(number)  -- Para gained y rates (abreviado)
     else return (isNegative and "-" or "") .. string.format("%.0f", number) end
 end
 
--- =====================================================
--- TAB 1: FAST REBIRTH (calculadora FIX + rebirths actuales con comas)
--- =====================================================
-
 local rebirthTab = Window:AddTab("Fast Rebirth")
 
 local tracking = false
@@ -314,10 +310,6 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
         warn("Auto Rebirth DETENIDO")
     end
 end)
-
--- =====================================================
--- TAB 2: STRENGTH OP
--- =====================================================
 
 local strengthTab = Window:AddTab("Strength Op")
 
