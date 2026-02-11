@@ -787,6 +787,7 @@ miscTab:AddSwitch("Anti-Lag (Pantalla Negra)", function(state)
     local Lighting = game:GetService("Lighting")
     
     if state then
+        -- Crear pantalla negra completa (opacidad 1.0)
         if not blackGui then
             blackGui = Instance.new("ScreenGui")
             blackGui.IgnoreGuiInset = true
@@ -794,20 +795,55 @@ miscTab:AddSwitch("Anti-Lag (Pantalla Negra)", function(state)
 
             local blackFrame = Instance.new("Frame")
             blackFrame.Size = UDim2.new(1, 0, 1, 0)
-            blackFrame.BackgroundColor3 = Color3.fromRGB(5, 5, 5)
-            blackFrame.BackgroundTransparency = 0.85
+            blackFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Negro puro
+            blackFrame.BackgroundTransparency = 0  -- 100% opaco (no ves nada)
+            blackFrame.BorderSizePixel = 0
             blackFrame.Parent = blackGui
         end
 
+        -- Reducir gráficos al mínimo para menos lag
         Lighting.GlobalShadows = false
-        Lighting.Brightness = 0.5
-        warn("[Misc] ANTI-LAG ACTIVADO")
+        Lighting.Brightness = 0
+        Lighting.EnvironmentDiffuseScale = 0
+        Lighting.EnvironmentSpecularScale = 0
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("PostEffect") then
+                effect.Enabled = false
+            end
+        end
+
+        warn("[Misc] ANTI-LAG ACTIVADO → Pantalla negra 100% + gráficos bajos")
     else
-        if blackGui then blackGui:Destroy() blackGui = nil end
+        -- Restaurar
+        if blackGui then
+            blackGui:Destroy()
+            blackGui = nil
+        end
+
         Lighting.GlobalShadows = true
         Lighting.Brightness = 1
-        warn("[Misc] ANTI-LAG DESACTIVADO")
+        Lighting.EnvironmentDiffuseScale = 1
+        Lighting.EnvironmentSpecularScale = 1
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("PostEffect") then
+                effect.Enabled = true
+            end
+        end
+
+        warn("[Misc] ANTI-LAG DESACTIVADO → Todo restaurado")
     end
+end)
+
+-- Botón de emergencia por si algo falla
+miscTab:AddButton("Restaurar Pantalla (si se queda negra)", function()
+    if blackGui then
+        blackGui:Destroy()
+        blackGui = nil
+    end
+    local Lighting = game:GetService("Lighting")
+    Lighting.GlobalShadows = true
+    Lighting.Brightness = 1
+    warn("[Misc] Pantalla restaurada manualmente")
 end)
 
 -- Equip Swift Samurai (Max 8)
