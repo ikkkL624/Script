@@ -50,7 +50,7 @@ StarterGui:SetCore("SendNotification", {
 
 print("Acceso autorizado - Script listo")
 
-local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/imhenne187/libvariations/refs/heads/main/librarys/red.luau"))()
+local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/red.luau"))()
 
 local Window = bd:AddWindow("The Strongest Rework | Farming ", {
     min_size = Vector2.new(450, 450),
@@ -764,7 +764,7 @@ miscTab:AddSwitch("Hide All Frames", function(state)
 end)
 
 -- Cambio Día/Noche
-miscTab:AddSwitch("Forzar Día / Noche", function(state)
+miscTab:AddSwitch("Noche", function(state)
     local Lighting = game:GetService("Lighting")
     if state then
         Lighting.ClockTime = 0
