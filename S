@@ -313,8 +313,9 @@ end)
 
 local strengthTab = Window:AddTab("Strength Op")
 
-getgenv()._AutoRepFarmEnabled = false
+local AutoRepFarmEnabled = false  -- local para evitar errores globales
 
+-- Configuración
 local PET_NAMES = {"Swift Samurai", "Sarge"}
 local PROTEIN_EGG_NAME = "Protein Egg"
 local PROTEIN_EGG_INTERVAL = 30 * 60
@@ -331,8 +332,10 @@ local lastProteinEggTime = 0
 local lastRockTime = 0
 
 local function getPing()
-    local s, p = pcall(function() return game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue() end)
-    return s and p or 999
+    local success, ping = pcall(function()
+        return game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()
+    end)
+    return success and ping or 999
 end
 
 local function updateCharacterRefs()
@@ -346,7 +349,9 @@ local function equipBestPet()
         for _, petName in ipairs(PET_NAMES) do
             for _, pet in pairs(petsFolder.Unique:GetChildren()) do
                 if pet.Name == petName then
-                    pcall(function() game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet) end)
+                    pcall(function()
+                        game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+                    end)
                     return
                 end
             end
@@ -354,6 +359,7 @@ local function equipBestPet()
     end
 end
 
+-- Función Eat Protein Egg (corregida y segura)
 local function eatProteinEggNew()
     local backpack = player:WaitForChild("Backpack", 5)
     local character = player.Character or player.CharacterAdded:Wait()
@@ -364,8 +370,10 @@ local function eatProteinEggNew()
     if egg then
         egg.Parent = character
         task.wait(0.1)
-        pcall(function() egg:Activate() end)
-        print("[AutoEgg] Protein Egg consumido.")
+        pcall(function()
+            egg:Activate()
+            print("[AutoEgg] Protein Egg consumido.")
+        end)
     else
         warn("[AutoEgg] No se encontró Protein Egg.")
     end
@@ -374,19 +382,23 @@ end
 local function hitRock()
     local rock = workspace:FindFirstChild(ROCK_NAME)
     if rock and HumanoidRootPart then
-        local ox = math.random(-30,30)/10
-        local oz = -(4 + math.random(0,2))
+        local ox = math.random(-30, 30) / 10
+        local oz = -(4 + math.random(0, 2))
         HumanoidRootPart.CFrame = rock.CFrame * CFrame.new(ox, 0, oz)
         task.wait(0.1)
-        pcall(function() game.ReplicatedStorage.rEvents.hitEvent:FireServer("hit", rock) end)
+        pcall(function()
+            game.ReplicatedStorage.rEvents.hitEvent:FireServer("hit", rock)
+        end)
     end
 end
 
-strengthTab:AddSwitch("Strength Op", function(state)
-    getgenv()._AutoRepFarmEnabled = state
-    warn("[Strength Op] " .. (state and "ON ⚡" or "OFF 🛑"))
+-- Toggle principal Auto Rep Farm
+strengthTab:AddSwitch("Strength Op (Min ping 250ms+)", function(state)
+    AutoRepFarmEnabled = state
+    warn("[Strength Op] " .. (state and "ACTIVADO ⚡" or "DESACTIVADO 🛑"))
 end)
 
+-- Toggle Eat Egg (30 Min)
 local autoEatEnabled = false
 
 strengthTab:AddSwitch("Eat Egg (30 Min)", function(state)
@@ -394,6 +406,7 @@ strengthTab:AddSwitch("Eat Egg (30 Min)", function(state)
     print(state and "[AutoEgg] ACTIVADO" or "[AutoEgg] DESACTIVADO")
 end)
 
+-- Loop Auto Eat Egg
 task.spawn(function()
     while true do
         if autoEatEnabled then
@@ -405,16 +418,17 @@ task.spawn(function()
     end
 end)
 
--- Setup auto rep farm
+-- Setup principal Auto Rep Farm
 task.spawn(function()
     updateCharacterRefs()
     equipBestPet()
     lastProteinEggTime = tick()
     lastRockTime = tick()
 
+    -- Monitor ping
     task.spawn(function()
         while true do
-            if getgenv()._AutoRepFarmEnabled then
+            if AutoRepFarmEnabled then
                 local ping = getPing()
                 farmingPaused = ping > MAX_PING
             end
@@ -422,16 +436,22 @@ task.spawn(function()
         end
     end)
 
-    task.spawn(function()
-    local spamCounter = 0
-    while true do
-        if getgenv()._AutoRepFarmEnabled and not farmingPaused then
-            for block = 1, 36 do  -- 36 bloques de 50 reps = 1800 total
-                for _ =
-
+    -- Spam reps (seguro y efectivo)
     task.spawn(function()
         while true do
-            if getgenv()._AutoRepFarmEnabled and not farmingPaused then
+            if AutoRepFarmEnabled and not farmingPaused then
+                for _ = 1, 50 do  -- 50 reps por ciclo (ajusta a 80-100 si quieres más rápido)
+                    pcall(function() player.muscleEvent:FireServer("rep") end)
+                end
+            end
+            task.wait(math.random(REP_WAIT_MIN * 10000, REP_WAIT_MAX * 10000) / 10000)
+        end
+    end)
+
+    -- Rock5M
+    task.spawn(function()
+        while true do
+            if AutoRepFarmEnabled and not farmingPaused then
                 local now = tick()
                 if now - lastRockTime >= ROCK_INTERVAL then
                     hitRock()
