@@ -784,79 +784,44 @@ miscTab:AddSwitch("Noche", function(state)
     end
 end)
 
-miscTab:AddButton("Full Optimization", function()
-    print("[Misc] Iniciando Full Optimization...")
-
-    -- 1. Eliminar todas las ScreenGui del PlayerGui (quita HUDs y overlays molestos)
-    local playerGui = player:WaitForChild("PlayerGui")
-    for _, gui in pairs(playerGui:GetChildren()) do
-        if gui:IsA("ScreenGui") then
-            pcall(function() gui:Destroy() end)
-        end
-    end
-
+miscTab:AddSwitch("Anti-Lag (Baja Gráficos)", function(state)
+    getgenv().AntiLagEnabled = state
     local Lighting = game:GetService("Lighting")
 
-    -- 2. Oscurecer cielo completamente (modo noche total + sin skybox)
-    pcall(function()
-        for _, v in pairs(Lighting:GetChildren()) do
-            if v:IsA("Sky") then
-                v:Destroy()
-            end
-        end
-
-        local darkSky = Instance.new("Sky")
-        darkSky.Name = "DarkSky"
-        darkSky.SkyboxBk = "rbxassetid://0"
-        darkSky.SkyboxDn = "rbxassetid://0"
-        darkSky.SkyboxFt = "rbxassetid://0"
-        darkSky.SkyboxLf = "rbxassetid://0"
-        darkSky.SkyboxRt = "rbxassetid://0"
-        darkSky.SkyboxUp = "rbxassetid://0"
-        darkSky.Parent = Lighting
-
-        Lighting.Brightness = 0
-        Lighting.ClockTime = 0
-        Lighting.TimeOfDay = "00:00:00"
-        Lighting.OutdoorAmbient = Color3.new(0, 0, 0)
-        Lighting.Ambient = Color3.new(0, 0, 0)
-        Lighting.FogColor = Color3.new(0, 0, 0)
+    if state then
+        Lighting.GlobalShadows = false
+        Lighting.Brightness = 0.3
+        Lighting.EnvironmentDiffuseScale = 0
+        Lighting.EnvironmentSpecularScale = 0
         Lighting.FogEnd = 100
-
-        -- Mantener oscuridad constante
-        task.spawn(function()
-            while true do
-                task.wait(5)
-                if not Lighting:FindFirstChild("DarkSky") then
-                    darkSky:Clone().Parent = Lighting
-                end
-                Lighting.Brightness = 0
-                Lighting.ClockTime = 0
-                Lighting.OutdoorAmbient = Color3.new(0, 0, 0)
-                Lighting.Ambient = Color3.new(0, 0, 0)
-                Lighting.FogColor = Color3.new(0, 0, 0)
-                Lighting.FogEnd = 100
-            end
-        end)
-    end)
-
-    -- 3. Eliminar partículas (reduce lag visual)
-    pcall(function()
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("ParticleEmitter") then
-                obj:Destroy()
-            end
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("PostEffect") then effect.Enabled = false end
         end
-    end)
-
-    -- 4. Eliminar luces (reduce lag de iluminación)
-    pcall(function()
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
-                obj:Destroy()
-            end
+        warn("[Misc] Anti-Lag ACTIVADO - Gráficos bajos")
+    else
+        Lighting.GlobalShadows = true
+        Lighting.Brightness = 1
+        Lighting.EnvironmentDiffuseScale = 1
+        Lighting.EnvironmentSpecularScale = 1
+        Lighting.FogEnd = 100000
+        for _, effect in pairs(Lighting:GetChildren()) do
+            if effect:IsA("PostEffect") then effect.Enabled = true end
         end
-    end)
+        warn("[Misc] Anti-Lag DESACTIVADO")
+    end
+end)
+
+-- Restaurar todo (botón de emergencia)
+miscTab:AddButton("Restaurar Todo (si algo falla)", function()
+    local Lighting = game:GetService("Lighting")
+    Lighting.GlobalShadows = true
+    Lighting.Brightness = 1
+    Lighting.FogEnd = 100000
+    for _, effect in pairs(Lighting:GetChildren()) do
+        if effect:IsA("PostEffect") then effect.Enabled = true end
+    end
+    warn("[Misc] Todo restaurado - Gráficos normales")
+end)
 
 -- Equip Swift Samurai (Max 8)
 miscTab:AddButton("Equip Swift Samurai (Max 8)", function()
