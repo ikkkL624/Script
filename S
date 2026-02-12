@@ -784,7 +784,7 @@ miscTab:AddSwitch("Noche", function(state)
     end
 end)
 
-AutoFarm:AddButton("Full Optimization", function()
+miscTab:AddButton("Full Optimization", function()
     local playerGui = LocalPlayer:WaitForChild("PlayerGui")
 
     for _, gui in pairs(playerGui:GetChildren()) do
