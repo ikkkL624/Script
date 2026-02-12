@@ -785,15 +785,20 @@ miscTab:AddSwitch("Noche", function(state)
 end)
 
 miscTab:AddButton("Full Optimization", function()
-    local playerGui = LocalPlayer:WaitForChild("PlayerGui")
+    print("[Misc] Iniciando Full Optimization...")
 
+    -- 1. Eliminar todas las ScreenGui del PlayerGui (quita HUDs y overlays molestos)
+    local playerGui = player:WaitForChild("PlayerGui")
     for _, gui in pairs(playerGui:GetChildren()) do
         if gui:IsA("ScreenGui") then
-            gui:Destroy()
+            pcall(function() gui:Destroy() end)
         end
     end
 
-    local function darkenSky()
+    local Lighting = game:GetService("Lighting")
+
+    -- 2. Oscurecer cielo completamente (modo noche total + sin skybox)
+    pcall(function()
         for _, v in pairs(Lighting:GetChildren()) do
             if v:IsA("Sky") then
                 v:Destroy()
@@ -818,9 +823,10 @@ miscTab:AddButton("Full Optimization", function()
         Lighting.FogColor = Color3.new(0, 0, 0)
         Lighting.FogEnd = 100
 
+        -- Mantener oscuridad constante
         task.spawn(function()
             while true do
-                wait(5)
+                task.wait(5)
                 if not Lighting:FindFirstChild("DarkSky") then
                     darkSky:Clone().Parent = Lighting
                 end
@@ -832,28 +838,25 @@ miscTab:AddButton("Full Optimization", function()
                 Lighting.FogEnd = 100
             end
         end)
-    end
+    end)
 
-    local function removeParticleEffects()
-        for _, obj in pairs(Workspace:GetDescendants()) do
+    -- 3. Eliminar partículas (reduce lag visual)
+    pcall(function()
+        for _, obj in pairs(workspace:GetDescendants()) do
             if obj:IsA("ParticleEmitter") then
                 obj:Destroy()
             end
         end
-    end
+    end)
 
-    local function removeLightSources()
-        for _, obj in pairs(Workspace:GetDescendants()) do
+    -- 4. Eliminar luces (reduce lag de iluminación)
+    pcall(function()
+        for _, obj in pairs(workspace:GetDescendants()) do
             if obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
                 obj:Destroy()
             end
         end
-    end
-
-    removeParticleEffects()
-    removeLightSources()
-    darkenSky()
-end)
+    end)
 
 -- Equip Swift Samurai (Max 8)
 miscTab:AddButton("Equip Swift Samurai (Max 8)", function()
