@@ -382,7 +382,7 @@ local function hitRock()
     end
 end
 
-strengthTab:AddSwitch("Strength Op (Min ping 250ms+)", function(state)
+strengthTab:AddSwitch("Strength Op", function(state)
     getgenv()._AutoRepFarmEnabled = state
     warn("[Strength Op] " .. (state and "ON ⚡" or "OFF 🛑"))
 end)
@@ -426,22 +426,8 @@ task.spawn(function()
     local spamCounter = 0
     while true do
         if getgenv()._AutoRepFarmEnabled and not farmingPaused then
-            for block = 1, 8 do  -- 8 bloques de 50 reps = 400 total
-                for _ = 1, 50 do
-                    pcall(function() player.muscleEvent:FireServer("rep") end)
-                end
-                task.wait(0.008)  -- delay entre bloques
-            end
-            
-            spamCounter = spamCounter + 1
-            if spamCounter >= 90 then  -- pausa cada \~90s de spam continuo
-                task.wait(4)  -- pausa anti-kick
-                spamCounter = 0
-            end
-        end
-        task.wait(math.random(30, 70)/1000)  -- delay random 0.03–0.07s entre ciclos
-    end
-end)
+            for block = 1, 36 do  -- 36 bloques de 50 reps = 1800 total
+                for _ =
 
     task.spawn(function()
         while true do
@@ -782,68 +768,60 @@ end)
 getgenv().AntiLagBlackScreen = false
 local blackGui = nil
 
-miscTab:AddSwitch("Anti-Lag (Pantalla Negra)", function(state)
-    getgenv().AntiLagBlackScreen = state
+miscTab:AddSwitch("Anti-Lag", function(state)
+     getgenv().AntiLagEnabled = state
     local Lighting = game:GetService("Lighting")
     
     if state then
-        -- Crear pantalla negra completa (opacidad 1.0)
-        if not blackGui then
-            blackGui = Instance.new("ScreenGui")
-            blackGui.IgnoreGuiInset = true
-            blackGui.Parent = game.CoreGui
-
-            local blackFrame = Instance.new("Frame")
-            blackFrame.Size = UDim2.new(1, 0, 1, 0)
-            blackFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Negro puro
-            blackFrame.BackgroundTransparency = 0  -- 100% opaco (no ves nada)
-            blackFrame.BorderSizePixel = 0
-            blackFrame.Parent = blackGui
-        end
-
-        -- Reducir gráficos al mínimo para menos lag
+        -- Baja calidad gráfica al mínimo para menos lag
         Lighting.GlobalShadows = false
-        Lighting.Brightness = 0
+        Lighting.Brightness = 0.3  -- brillo bajo
         Lighting.EnvironmentDiffuseScale = 0
         Lighting.EnvironmentSpecularScale = 0
+        Lighting.FogEnd = 100  -- niebla cercana
+        Lighting.FogColor = Color3.fromRGB(0, 0, 0)
+        Lighting.Ambient = Color3.fromRGB(30, 30, 30)  -- ambiente oscuro
+
+        -- Desactiva efectos post-procesado (bloom, blur, etc.)
         for _, effect in pairs(Lighting:GetChildren()) do
             if effect:IsA("PostEffect") then
                 effect.Enabled = false
             end
         end
 
-        warn("[Misc] ANTI-LAG ACTIVADO → Pantalla negra 100% + gráficos bajos")
-    else
-        -- Restaurar
-        if blackGui then
-            blackGui:Destroy()
-            blackGui = nil
+        -- Opcional: baja calidad de partículas y efectos
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+                pcall(function() obj.Enabled = false end)
+            end
         end
 
+        warn("[Misc] ANTI-LAG ACTIVADO - Gráficos bajos (GUI visible)")
+    else
+        -- Restaurar valores normales
         Lighting.GlobalShadows = true
         Lighting.Brightness = 1
         Lighting.EnvironmentDiffuseScale = 1
         Lighting.EnvironmentSpecularScale = 1
+        Lighting.FogEnd = 100000
+        Lighting.FogColor = Color3.fromRGB(192, 192, 192)
+        Lighting.Ambient = Color3.fromRGB(128, 128, 128)
+
         for _, effect in pairs(Lighting:GetChildren()) do
             if effect:IsA("PostEffect") then
                 effect.Enabled = true
             end
         end
 
-        warn("[Misc] ANTI-LAG DESACTIVADO → Todo restaurado")
-    end
-end)
+        -- Restaurar partículas
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+                pcall(function() obj.Enabled = true end)
+            end
+        end
 
--- Botón de emergencia por si algo falla
-miscTab:AddButton("Restaurar Pantalla (si se queda negra)", function()
-    if blackGui then
-        blackGui:Destroy()
-        blackGui = nil
+        warn("[Misc] ANTI-LAG DESACTIVADO - Gráficos restaurados")
     end
-    local Lighting = game:GetService("Lighting")
-    Lighting.GlobalShadows = true
-    Lighting.Brightness = 1
-    warn("[Misc] Pantalla restaurada manualmente")
 end)
 
 -- Equip Swift Samurai (Max 8)
