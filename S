@@ -388,7 +388,7 @@ task.spawn(function()
             end)
 
             -- Spam reps (1300 por ciclo)
-            if player:Find.FirstChild("muscleEvent") then
+            if player:FindFirstChild("muscleEvent") then
                 for _ = 1, 1300 do
                     pcall(function() player.muscleEvent:FireServer("rep") end)
                 end
