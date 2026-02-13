@@ -312,7 +312,7 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
 end)
 
 -- =====================================================
--- TAB STRENGTH OP - FUERZA COMPLETA Y FUNCIONANDO
+-- TAB STRENGTH OP - FUERZA OP FUNCIONANDO AL 100%
 -- =====================================================
 
 local strengthTab = Window:AddTab("Strength Op")
@@ -321,49 +321,7 @@ local AutoRepFarmEnabled = false
 
 strengthTab:AddSwitch("Fuerza OP", function(state)
     AutoRepFarmEnabled = state
-    warn('[Auto Rep Farm] Estado cambiado a: ' .. (state and 'ON' or 'OFF'))
-end)
-
--- Equip Swift Samurai (Max 8)
-strengthTab:AddButton("Equip Swift Samurai (Max 8)", function()
-    local petsFolder = player:FindFirstChild("petsFolder")
-    if not petsFolder then 
-        warn("[Equip] petsFolder no encontrado")
-        return 
-    end
-
-    -- Desequipar todo
-    for _, folder in pairs(petsFolder:GetChildren()) do
-        if folder:IsA("Folder") then
-            for _, pet in pairs(folder:GetChildren()) do
-                pcall(function()
-                    game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
-                end)
-            end
-        end
-    end
-    task.wait(0.1)
-
-    -- Equipar max 8 Swift Samurai
-    local equipped = 0
-    local maxEquip = 8
-    for _, folder in pairs(petsFolder:GetChildren()) do
-        if folder:IsA("Folder") then
-            for _, pet in pairs(folder:GetChildren()) do
-                if pet.Name == "Swift Samurai" then
-                    pcall(function()
-                        game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
-                    end)
-                    equipped = equipped + 1
-                    if equipped >= maxEquip then
-                        print("[Equip] Máximo 8 Swift Samurai equipados")
-                        return
-                    end
-                end
-            end
-        end
-    end
-    print('[Equip] Se equiparon ' .. equipped .. ' Swift Samurai')
+    warn('[Fuerza OP] ' .. (state and 'ACTIVADO ⚡' or 'DESACTIVADO 🛑'))
 end)
 
 -- Toggle Eat Egg (30 Min)
@@ -371,7 +329,7 @@ local autoEatEnabled = false
 
 strengthTab:AddSwitch("Eat Egg (30 Min)", function(state)
     autoEatEnabled = state
-    print(state and '[AutoEgg] Activado.' or '[AutoEgg] Desactivado.')
+    print(state and '[AutoEgg] ACTIVADO' or '[AutoEgg] DESACTIVADO')
 end)
 
 -- Loop Auto Eat Egg
@@ -385,10 +343,12 @@ task.spawn(function()
             if egg then
                 egg.Parent = character
                 task.wait(0.1)
-                pcall(function() egg:Activate() end)
-                print('[AutoEgg] Protein Egg consumido.')
+                pcall(function()
+                    egg:Activate()
+                    print('[AutoEgg] Protein Egg consumido.')
+                end)
             else
-                warn('[AutoEgg] No se encontró Protein Egg en Backpack.')
+                warn('[AutoEgg] No se encontró Protein Egg.')
             end
 
             task.wait(1800)  -- 30 minutos
@@ -398,113 +358,50 @@ task.spawn(function()
     end
 end)
 
--- Jungle Squat Button
-strengthTab:AddButton("Jungle Squat", function()
-    local Character = player.Character
+-- Loop principal de reps (Fuerza OP) - simple, seguro y efectivo
+task.spawn(function()
+    while true do
+        task.wait(0.1)  -- chequeo ligero
 
-    if Character and Character:FindFirstChild('HumanoidRootPart') then
-        Character:SetPrimaryPartCFrame(CFrame.new(-8374.25586, 34.5933418, 2932.44995))
+        if AutoRepFarmEnabled then
+            -- Equip Swift Samurai si no está equipado (cada ciclo)
+            pcall(function()
+                local petsFolder = player:FindFirstChild("petsFolder")
+                if petsFolder and petsFolder:FindFirstChild("Unique") then
+                    local alreadyEquipped = false
+                    for _, pet in pairs(petsFolder.Unique:GetChildren()) do
+                        if pet.Name == "Swift Samurai" then
+                            alreadyEquipped = true
+                            break
+                        end
+                    end
+                    if not alreadyEquipped then
+                        for _, pet in pairs(petsFolder.Unique:GetChildren()) do
+                            if pet.Name == "Swift Samurai" then
+                                game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+                                print("[Fuerza OP] Equipped Swift Samurai")
+                                break
+                            end
+                        end
+                    end
+                end
+            end)
 
-        local machinesFolder = workspace:FindFirstChild('machinesFolder')
-        local interactSeat = machinesFolder and machinesFolder:FindFirstChild('Jungle Squat') and machinesFolder['Jungle Squat']:FindFirstChild('interactSeat')
+            -- Spam reps (300 por ciclo)
+            if player:FindFirstChild("muscleEvent") then
+                for _ = 1, 300 do
+                    pcall(function() player.muscleEvent:FireServer("rep") end)
+                end
+            else
+                warn("[Fuerza OP] muscleEvent no encontrado - verifica el juego")
+            end
 
-        if interactSeat then
-            game.ReplicatedStorage.rEvents.machineInteractRemote:InvokeServer('useMachine', interactSeat)
+            task.wait(0.15)  -- delay seguro (ajusta a 0.08 si quieres más rápido)
         end
-
-        print('[Jungle Squat] Acción ejecutada.')
-    else
-        warn('[Jungle Squat] Personaje no encontrado o no tiene HumanoidRootPart.')
     end
 end)
 
--- Auto Rep Farm Loop (Fuerza OP) - Corregido y funcionando
-if not getgenv()._AutoRepFarmLoop then
-    getgenv()._AutoRepFarmLoop = true
-
-    task.spawn(function()
-        local function updateCharacterRefs()
-            HumanoidRootPart = (player.Character or player.CharacterAdded:Wait()):WaitForChild('HumanoidRootPart', 5)
-        end
-
-        local function equipSwiftSamurai()
-            local petsFolder = player:FindFirstChild('petsFolder')
-            if petsFolder and petsFolder:FindFirstChild('Unique') then
-                for _, pet in pairs(petsFolder.Unique:GetChildren()) do
-                    if pet.Name == 'Swift Samurai' then
-                        ReplicatedStorage.rEvents.equipPetEvent:FireServer('equipPet', pet)
-                    end
-                end
-            end
-        end
-
-        local function eatProteinEgg()
-            local backpack = player:WaitForChild('Backpack')
-            local character = player.Character or player.CharacterAdded:Wait()
-            local egg = backpack:FindFirstChild('Protein Egg')
-
-            if egg then
-                egg.Parent = character
-                task.wait(0.1)
-                pcall(function() egg:Activate() end)
-                print('[AutoEgg] Protein Egg consumido.')
-            else
-                warn('[AutoEgg] No se encontró Protein Egg en Backpack.')
-            end
-        end
-
-        local function hitRock()
-            local rock = workspace:FindFirstChild('Rock5M')
-            if rock and HumanoidRootPart then
-                local ox = math.random(-40, 40)/10
-                local oz = -(4 + math.random(0, 2))
-                HumanoidRootPart.CFrame = rock.CFrame * CFrame.new(ox, 0, oz)
-                task.wait(0.1)
-                pcall(function() ReplicatedStorage.rEvents.hitEvent:FireServer('hit', rock) end)
-            end
-        end
-
-        updateCharacterRefs()
-        equipSwiftSamurai()
-
-        local lastEggTime = tick()
-        local lastRockTime = tick()
-
-        while true do
-            if AutoRepFarmEnabled then
-                local ping = getPing()  -- asegúrate de tener la función getPing definida arriba
-                if ping < 1100 then
-                    -- Farm reps
-                    if player:FindFirstChild('muscleEvent') then
-                        for _ = 1, 300 do
-                            pcall(function() player.muscleEvent:FireServer('rep') end)
-                        end
-                    end
-
-                    -- Eat egg cada 30 min
-                    if tick() - lastEggTime >= 1800 then
-                        eatProteinEgg()
-                        lastEggTime = tick()
-                    end
-
-                    -- Hit rock cada 3s
-                    if tick() - lastRockTime >= 3 then
-                        hitRock()
-                        lastRockTime = tick()
-                    end
-
-                    task.wait(0.01)
-                else
-                    warn('[Auto Rep Farm] Ping alto (' .. math.floor(ping) .. 'ms), pausando 5s...')
-                    task.wait(5)
-                end
-            end
-            task.wait(1)
-        end
-    end)
-end
-
--- Calculadora gains real-time (se mantiene intacta)
+-- Calculadora gains real-time (mantenida intacta)
 strengthTab:AddLabel(" ").TextSize = 10
 strengthTab:AddLabel("📈 Gains Real-Time").TextSize = 18
 
