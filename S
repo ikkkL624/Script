@@ -712,43 +712,80 @@ miscTab:AddSwitch("Noche", function(state)
     end
 end)
 
-miscTab:AddSwitch("Anti-Lag (Baja Gráficos)", function(state)
-    getgenv().AntiLagEnabled = state
+miscTab:AddSwitch("Anti-Lag (Pantalla Negra - Solo Script)", function(state)
+    getgenv().AntiLagBlackScreen = state
     local Lighting = game:GetService("Lighting")
-
+    
     if state then
+        -- Crear pantalla negra completa (100% opaco)
+        if not blackGui then
+            blackGui = Instance.new("ScreenGui")
+            blackGui.Name = "AntiLagBlack"
+            blackGui.IgnoreGuiInset = true
+            blackGui.ResetOnSpawn = false  -- No se destruye al respawnear
+            blackGui.Parent = game.CoreGui  -- En CoreGui para que cubra todo
+
+            local blackFrame = Instance.new("Frame")
+            blackFrame.Name = "BlackOverlay"
+            blackFrame.Size = UDim2.new(1, 0, 1, 0)
+            blackFrame.Position = UDim2.new(0, 0, 0, 0)
+            blackFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Negro puro
+            blackFrame.BackgroundTransparency = 0  -- 0% transparente (100% negro)
+            blackFrame.BorderSizePixel = 0
+            blackFrame.ZIndex = 999999  -- Muy alto para cubrir todo
+            blackFrame.Parent = blackGui
+
+            -- Asegurar que la GUI de tu script quede encima
+            Window.Frame.ZIndex = 1000000  -- Tu ventana del script por encima del negro
+            Window.Frame.Visible = true
+        end
+
+        -- Reducir calidad gráfica para menos lag
         Lighting.GlobalShadows = false
-        Lighting.Brightness = 0.3
+        Lighting.Brightness = 0
         Lighting.EnvironmentDiffuseScale = 0
         Lighting.EnvironmentSpecularScale = 0
         Lighting.FogEnd = 100
         for _, effect in pairs(Lighting:GetChildren()) do
-            if effect:IsA("PostEffect") then effect.Enabled = false end
+            if effect:IsA("PostEffect") or effect:IsA("Sky") then
+                pcall(function() effect.Enabled = false end)
+            end
         end
-        warn("[Misc] Anti-Lag ACTIVADO - Gráficos bajos")
+
+        warn("[Misc] ANTI-LAG ACTIVADO → Pantalla negra 100%, solo se ve el script")
     else
+        -- Restaurar
+        if blackGui then
+            blackGui:Destroy()
+            blackGui = nil
+        end
+
         Lighting.GlobalShadows = true
         Lighting.Brightness = 1
         Lighting.EnvironmentDiffuseScale = 1
         Lighting.EnvironmentSpecularScale = 1
         Lighting.FogEnd = 100000
         for _, effect in pairs(Lighting:GetChildren()) do
-            if effect:IsA("PostEffect") then effect.Enabled = true end
+            if effect:IsA("PostEffect") or effect:IsA("Sky") then
+                pcall(function() effect.Enabled = true end)
+            end
         end
-        warn("[Misc] Anti-Lag DESACTIVADO")
+
+        warn("[Misc] ANTI-LAG DESACTIVADO → Todo visible de nuevo")
     end
 end)
 
--- Restaurar todo (botón de emergencia)
-miscTab:AddButton("Restaurar Todo (si algo falla)", function()
+-- Botón de emergencia (si se queda negra y no puedes desactivar)
+miscTab:AddButton("Restaurar Pantalla (Emergencia)", function()
+    if blackGui then
+        blackGui:Destroy()
+        blackGui = nil
+    end
     local Lighting = game:GetService("Lighting")
     Lighting.GlobalShadows = true
     Lighting.Brightness = 1
     Lighting.FogEnd = 100000
-    for _, effect in pairs(Lighting:GetChildren()) do
-        if effect:IsA("PostEffect") then effect.Enabled = true end
-    end
-    warn("[Misc] Todo restaurado - Gráficos normales")
+    warn("[Misc] Pantalla restaurada manualmente")
 end)
 
 -- Equip Swift Samurai (Max 8)
