@@ -312,7 +312,7 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
 end)
 
 -- =====================================================
--- TAB STRENGTH OP - NUEVO CONTENIDO + CALCULADORA DE GAINS
+-- TAB STRENGTH OP - FUERZA COMPLETA Y FUNCIONANDO
 -- =====================================================
 
 local strengthTab = Window:AddTab("Strength Op")
@@ -324,25 +324,9 @@ strengthTab:AddSwitch("Fuerza OP", function(state)
     warn('[Auto Rep Farm] Estado cambiado a: ' .. (state and 'ON' or 'OFF'))
 end)
 
-local ReplicatedStorage = game:GetService('ReplicatedStorage')
-local Players = game:GetService('Players')
-local Stats = game:GetService('Stats')
-local LocalPlayer = Players.LocalPlayer
-
-local SwiftSamurai = 'Swift Samurai'
-local Rock5M = 'Rock5M'
-local ProteinEgg = 'Protein Egg'
-
-local maxRepsPerCycle = 1800
-local repsPerBlock = 300
-local blockDelay = 0.01
-
-local lastEggTime = 0
-local lastRockTime = 0
-
--- Botón Equip Swift Samurai (Max 8)
+-- Equip Swift Samurai (Max 8)
 strengthTab:AddButton("Equip Swift Samurai (Max 8)", function()
-    local petsFolder = LocalPlayer:FindFirstChild("petsFolder")
+    local petsFolder = player:FindFirstChild("petsFolder")
     if not petsFolder then 
         warn("[Equip] petsFolder no encontrado")
         return 
@@ -353,7 +337,7 @@ strengthTab:AddButton("Equip Swift Samurai (Max 8)", function()
         if folder:IsA("Folder") then
             for _, pet in pairs(folder:GetChildren()) do
                 pcall(function()
-                    ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
+                    game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
                 end)
             end
         end
@@ -366,9 +350,9 @@ strengthTab:AddButton("Equip Swift Samurai (Max 8)", function()
     for _, folder in pairs(petsFolder:GetChildren()) do
         if folder:IsA("Folder") then
             for _, pet in pairs(folder:GetChildren()) do
-                if pet.Name == SwiftSamurai then
+                if pet.Name == "Swift Samurai" then
                     pcall(function()
-                        ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
+                        game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
                     end)
                     equipped = equipped + 1
                     if equipped >= maxEquip then
@@ -394,9 +378,9 @@ end)
 task.spawn(function()
     while true do
         if autoEatEnabled then
-            local backpack = LocalPlayer:WaitForChild("Backpack")
-            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local egg = backpack:FindFirstChild(ProteinEgg)
+            local backpack = player:WaitForChild("Backpack")
+            local character = player.Character or player.CharacterAdded:Wait()
+            local egg = backpack:FindFirstChild("Protein Egg")
 
             if egg then
                 egg.Parent = character
@@ -416,7 +400,7 @@ end)
 
 -- Jungle Squat Button
 strengthTab:AddButton("Jungle Squat", function()
-    local Character = LocalPlayer.Character
+    local Character = player.Character
 
     if Character and Character:FindFirstChild('HumanoidRootPart') then
         Character:SetPrimaryPartCFrame(CFrame.new(-8374.25586, 34.5933418, 2932.44995))
@@ -425,7 +409,7 @@ strengthTab:AddButton("Jungle Squat", function()
         local interactSeat = machinesFolder and machinesFolder:FindFirstChild('Jungle Squat') and machinesFolder['Jungle Squat']:FindFirstChild('interactSeat')
 
         if interactSeat then
-            ReplicatedStorage.rEvents.machineInteractRemote:InvokeServer('useMachine', interactSeat)
+            game.ReplicatedStorage.rEvents.machineInteractRemote:InvokeServer('useMachine', interactSeat)
         end
 
         print('[Jungle Squat] Acción ejecutada.')
@@ -434,17 +418,17 @@ strengthTab:AddButton("Jungle Squat", function()
     end
 end)
 
--- Auto Rep Farm Loop (Fuerza OP)
+-- Auto Rep Farm Loop (Fuerza OP) - Corregido y funcionando
 if not getgenv()._AutoRepFarmLoop then
     getgenv()._AutoRepFarmLoop = true
 
     task.spawn(function()
         local function updateCharacterRefs()
-            HumanoidRootPart = (LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()):WaitForChild('HumanoidRootPart', 5)
+            HumanoidRootPart = (player.Character or player.CharacterAdded:Wait()):WaitForChild('HumanoidRootPart', 5)
         end
 
         local function equipSwiftSamurai()
-            local petsFolder = LocalPlayer:FindFirstChild('petsFolder')
+            local petsFolder = player:FindFirstChild('petsFolder')
             if petsFolder and petsFolder:FindFirstChild('Unique') then
                 for _, pet in pairs(petsFolder.Unique:GetChildren()) do
                     if pet.Name == 'Swift Samurai' then
@@ -455,8 +439,8 @@ if not getgenv()._AutoRepFarmLoop then
         end
 
         local function eatProteinEgg()
-            local backpack = LocalPlayer:WaitForChild('Backpack')
-            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local backpack = player:WaitForChild('Backpack')
+            local character = player.Character or player.CharacterAdded:Wait()
             local egg = backpack:FindFirstChild('Protein Egg')
 
             if egg then
@@ -488,12 +472,12 @@ if not getgenv()._AutoRepFarmLoop then
 
         while true do
             if AutoRepFarmEnabled then
-                local ping = getPing()  -- función que ya tienes o define como arriba
+                local ping = getPing()  -- asegúrate de tener la función getPing definida arriba
                 if ping < 1100 then
                     -- Farm reps
-                    if LocalPlayer:FindFirstChild('muscleEvent') then
-                        for _ = 1, 300 do  -- ajusta aquí si quieres más/menos
-                            pcall(function() LocalPlayer.muscleEvent:FireServer('rep') end)
+                    if player:FindFirstChild('muscleEvent') then
+                        for _ = 1, 300 do
+                            pcall(function() player.muscleEvent:FireServer('rep') end)
                         end
                     end
 
@@ -593,10 +577,6 @@ task.spawn(function()
         task.wait(0.05)
     end
 end)
-
--- =====================================================
--- TAB 3: MISC
--- =====================================================
 
 local miscTab = Window:AddTab("Misc")
 
