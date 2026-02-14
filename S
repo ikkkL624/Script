@@ -305,31 +305,40 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
 end)
 
 -- =====================================================
--- TAB STRENGTH OP - CÓDIGO COMPLETO Y PERFECTO (FIX CORTES + REPS AJUSTADAS)
+-- TAB STRENGTH OP / FARM OP - CÓDIGO COMPLETO Y CORREGIDO
+-- Switch "Fuerza OP" ahora funciona, farm sube fuerza
 -- =====================================================
 
-local strengthTab = window:AddTab("Strength Op")
+local strengthTab = window:AddTab("Farm OP")
+strengthTab:Show()
 
-getgenv()._AutoRepFarmEnabled = false
+-- Estado inicial
+getgenv()._AutoRepFarmEnabled = false  
 
+-- Switch "Fuerza OP"
 strengthTab:AddSwitch("Fuerza OP", function(state)
     getgenv()._AutoRepFarmEnabled = state
-    warn("[Auto Rep Farm] Status:", state and "ON" or "OFF")
+    warn("[Auto Rep Farm] Estado cambiado a:", state and "ON" or "OFF")
 end)
 
+-- Servicios
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 local Stats = game:GetService("Stats")
 local LocalPlayer = Players.LocalPlayer
 
+-- Configuración
 local PET_NAME = "Swift Samurai"
 local ROCK_NAME = "Rock5M"
 local PROTEIN_EGG_NAME = "ProteinEgg"
 local PROTEIN_EGG_INTERVAL = 30 * 60
-local REPS_PER_CYCLE = 1800
-local REPS_PER_BLOCK = 300
-local BLOCK_DELAY = 0.01
+local REPS_PER_CYCLE = 2000
+local REP_DELAY = 0.01
+local ROCK_INTERVAL = 1
+local MAX_PING = 500
+local MIN_PING = 300
 
+-- Variables internas
 local HumanoidRootPart
 local lastProteinEggTime = 0
 local lastRockTime = 0
@@ -373,12 +382,17 @@ end
 local function hitRock()
     local rock = workspace:FindFirstChild(ROCK_NAME)
     if rock and HumanoidRootPart then
-        HumanoidRootPart.CFrame = rock.CFrame * CFrame.new(0, 0, -5)
-        ReplicatedStorage.rEvents.hitEvent:FireServer("hit", rock)
+        local ox = math.random(-40, 40) / 10
+        local oz = -(4 + math.random(0, 2))
+        HumanoidRootPart.CFrame = rock.CFrame * CFrame.new(ox, 0, oz)
+        task.wait(0.1)
+        pcall(function()
+            ReplicatedStorage.rEvents.hitEvent:FireServer("hit", rock)
+        end)
     end
 end
 
--- Loop principal (corregido y sin cortes)
+-- Loop principal (corregido - siempre corre y chequea el toggle)
 task.spawn(function()
     updateCharacterRefs()
     equipPet()
@@ -411,7 +425,9 @@ task.spawn(function()
             if not farmingPaused then
                 if LocalPlayer:FindFirstChild("muscleEvent") then
                     for i = 1, REPS_PER_CYCLE do
-                        LocalPlayer.muscleEvent:FireServer("rep")
+                        pcall(function()
+                            LocalPlayer.muscleEvent:FireServer("rep")
+                        end)
                     end
                 end
 
@@ -428,168 +444,6 @@ task.spawn(function()
         end
 
         task.wait(REP_DELAY)
-    end
-end)
-
-local autoEatEnabled = false
-local function eatProteinEggNew()
-    local player = game.Players.LocalPlayer
-    local backpack = player:WaitForChild("Backpack")
-    local character = player.Character or player.CharacterAdded:Wait()
-
-    local egg = backpack:FindFirstChild("Protein Egg")
-    if egg then
-        egg.Parent = character
-        pcall(function()
-            egg:Activate()
-        end)
-        print("[AutoEgg] Protein Egg consumido.")
-    else
-        warn("[AutoEgg] No se encontró Protein Egg en Backpack.")
-    end
-end
-
-task.spawn(function()
-    while true do
-        if autoEatEnabled then
-            eatProteinEggNew()
-            task.wait(3600)
-        else
-            task.wait(1)
-        end
-    end
-end)
-
-strengthTab:AddSwitch("Eat Egg (60 Min)", function(state)
-    autoEatEnabled = state
-    print(state and "[AutoEgg] Activado." or "[AutoEgg] Desactivado.")
-end)
-
-local autoEatEnabled = false
-local function eatProteinEggNew()
-    local player = game.Players.LocalPlayer
-    local backpack = player:WaitForChild("Backpack")
-    local character = player.Character or player.CharacterAdded:Wait()
-
-    local egg = backpack:FindFirstChild("Protein Egg")
-    if egg then
-        egg.Parent = character
-        pcall(function()
-            egg:Activate()
-        end)
-        print("[AutoEgg] Protein Egg consumido.")
-    else
-        warn("[AutoEgg] No se encontró Protein Egg en Backpack.")
-    end
-end
-
-task.spawn(function()
-    while true do
-        if autoEatEnabled then
-            eatProteinEggNew()
-            task.wait(1800)
-        else
-            task.wait(1)
-        end
-    end
-end)
-
-strengthTab:AddSwitch("Eat Egg (30 Min)", function(state)
-    autoEatEnabled = state
-    print(state and "[AutoEgg] Activado." or "[AutoEgg] Desactivado.")
-end)
-
-strengthTab:AddSwitch("Hide All Frames", function(bool)
-    local rSto = game:GetService("ReplicatedStorage")
-    for _, obj in pairs(rSto:GetChildren()) do
-        if obj.Name:match("Frame$") then
-            obj.Visible = not bool
-        end
-    end
-end)
-
-strengthTab:AddSwitch("Anti Lag (Baja Graficos)", function()
-    for _, v in pairs(game:GetDescendants()) do
-        if v:IsA("ParticleEmitter") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
-            v.Enabled = false
-        end
-    end
-
-    local lighting = game:GetService("Lighting")
-    lighting.GlobalShadows = false
-    lighting.FogEnd = 9e9
-    lighting.Brightness = 0
-
-    settings().Rendering.QualityLevel = 1
-
-    for _, v in pairs(game:GetDescendants()) do
-        if v:IsA("Decal") or v:IsA("Texture") then
-            v.Transparency = 1
-        elseif v:IsA("BasePart") and not v:IsA("MeshPart") then
-            v.Material = Enum.Material.SmoothPlastic
-            if v.Parent and (v.Parent:FindFirstChild("Humanoid") or v.Parent.Parent:FindFirstChild("Humanoid") ) then
-            else
-                v.Reflectance = 0
-            end
-        end
-    end
-
-    for _, v in pairs(lighting:GetChildren()) do
-        if v:IsA("BlurEffect") or v:IsA("SunRaysEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("BloomEffect") or v:IsA("DepthOfFieldEffect") then
-            v.Enabled = false
-        end
-    end
-
-    game:GetService("StarterGui"):SetCore("SendNotification", {
-        Title = "anti lag activado",
-        Text = "Full optimization applied!",
-        Duration = 5
-    })
-end)
-
-
-getgenv().AntiLagBlackScreen = false
-local blackGui = nil
-
-strengthTab:AddSwitch("Anti Lag (Full Black)", function(State)
-    getgenv().AntiLagBlackScreen = State
-    local lighting = game:GetService("Lighting")
-    if State then
-        for _, gui in pairs(LocalPlayer.PlayerGui:GetChildren()) do
-            if gui:IsA("ScreenGui") then gui:Destroy() end
-        end
-        for _, obj in pairs(workspace:GetDescendants()) do
-            if obj:IsA("ParticleEmitter") or obj:IsA("PointLight") or obj:IsA("SpotLight") or obj:IsA("SurfaceLight") then
-                obj:Destroy()
-            end
-        end
-        for _, v in pairs(lighting:GetChildren()) do
-            if v:IsA("Sky") then v:Destroy() end
-        end
-        local darkSky = Instance.new("Sky")
-        darkSky.Name = "DarkSky"
-        darkSky.SkyboxBk = "rbxassetid://0"
-        darkSky.SkyboxDn = "rbxassetid://0"
-        darkSky.SkyboxFt = "rbxassetid://0"
-        darkSky.SkyboxLf = "rbxassetid://0"
-        darkSky.SkyboxRt = "rbxassetid://0"
-        darkSky.SkyboxUp = "rbxassetid://0"
-        darkSky.Parent = lighting
-        lighting.Brightness = 0
-        lighting.ClockTime = 0
-        lighting.TimeOfDay = "00:00:00"
-        lighting.OutdoorAmbient = Color3.new(0,0,0)
-        lighting.Ambient = Color3.new(0,0,0)
-        lighting.FogColor = Color3.new(0,0,0)
-        lighting.FogEnd = 100
-        task.spawn(function()
-            while State do
-                task.wait(5)
-                if not lighting:FindFirstChild("DarkSky") then
-                    darkSky:Clone().Parent = lighting
-                end
-            end
-        end)
     end
 end)
 
@@ -666,8 +520,6 @@ task.spawn(function()
         task.wait(0.05)
     end
 end)
-
-print("[Strength Op] Tab reemplazado correctamente: Fuerza OP + Equip + Jungle Squat + Eat Egg + Anti Lag + Calculadora Gains intacta")
 
 local miscTab = window:AddTab("Misc")
 
