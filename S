@@ -44,28 +44,21 @@ end
 -- AUTORIZADO ✅
 StarterGui:SetCore("SendNotification", {
     Title = "Whitelist OK";
-    Text = "Acceso autorizado para " .. LocalPlayer.Name .. " | ¡Rebirth anti-leech activo!";
+    Text = "Acceso autorizado para " .. LocalPlayer.Name .. " | ¡Te amo Gorda";
     Duration = 4;
 })
 
 print("Acceso autorizado - Script listo")
 
-local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/red.luau"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MONARCA26X/LIBRER-A/refs/heads/main/GNIK-INKGG", true))()
 
-local Window = bd:AddWindow("The Strongest Rework | Farming ", {
-    min_size = Vector2.new(450, 450),
-    background = {
-        [1] = Color3.fromRGB(255, 230, 240),   -- Rosa muy claro (fondo inicio)
-        [2] = Color3.fromRGB(255, 182, 193)    -- Rosa suave (fondo fin)
-    },
-    main_color = Color3.fromRGB(255, 105, 180),   -- Rosa medio-fuerte (textos/bordes)
+local player = game.Players.LocalPlayer
+local displayName = player.DisplayName or player.Name
+
+local window = library:AddWindow("The Strongest Rework | Farming |  Hello " .. displayName, {
+    main_color = Color3.fromRGB(50, 50, 190),
+    min_size = Vector2.new(650, 870),
     can_resize = true,
-    title_bar_transparency = 0.20,
-    background_transparency = 0.12,
-    title_bar = {
-        [1] = Color3.fromRGB(255, 20, 147),    -- Rosa intenso (barra inicio)
-        [2] = Color3.fromRGB(219, 112, 147)    -- Rosa fuerte medio (barra fin)
-    }
 })
 
 local player = game.Players.LocalPlayer
