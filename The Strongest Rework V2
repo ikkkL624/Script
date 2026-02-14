@@ -12,10 +12,13 @@ local displayName = player.DisplayName or player.Name
 
 -- VENTANA PRINCIPAL
 local window = library:AddWindow("The strongest Rework V2 | Bienvenido ".. displayName, {
-    main_color = Color3.fromRGB(0, 0, 139), 
+    main_color = Color3.fromRGB(50, 50, 190), 
     min_size = Vector2.new(600, 820),
     can_resize = false,
 })
+
+local Main = window:AddTab("Main")
+
 
 local AutoFarm = window:AddTab("Fast Farm")
 AutoFarm:Show()
@@ -4153,6 +4156,7 @@ Credits:AddLabel("Script Packs")
 Credits:AddLabel("Siempre top") 
 
 Credits:AddLabel("Si ves esto eres el próximo en morir...")
+
 
 
 
