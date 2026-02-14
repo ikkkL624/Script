@@ -89,7 +89,7 @@ local function formatNumber(number)  -- Para gained y rates (abreviado)
     else return (isNegative and "-" or "") .. string.format("%.0f", number) end
 end
 
-local rebirthTab = Window:AddTab("Fast Rebirth")
+local rebirthTab = window:AddTab("Fast Rebirth")
 
 local tracking = false
 local gainedRebirths = 0
@@ -308,7 +308,7 @@ end)
 -- TAB STRENGTH OP - CÓDIGO COMPLETO Y PERFECTO (FIX CORTES + REPS AJUSTADAS)
 -- =====================================================
 
-local strengthTab = Window:AddTab("Strength Op")
+local strengthTab = window:AddTab("Strength Op")
 
 local AutoRepFarmEnabled = false
 
@@ -669,7 +669,7 @@ end)
 
 print("[Strength Op] Tab reemplazado correctamente: Fuerza OP + Equip + Jungle Squat + Eat Egg + Anti Lag + Calculadora Gains intacta")
 
-local miscTab = Window:AddTab("Misc")
+local miscTab = window:AddTab("Misc")
 
 -- Anti-AFK con GUI (sin saltos)
 getgenv().AntiAfkExecuted = false
