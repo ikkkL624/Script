@@ -310,11 +310,11 @@ end)
 
 local strengthTab = window:AddTab("Strength Op")
 
-local AutoRepFarmEnabled = false
+getgenv()._AutoRepFarmEnabled = false
 
 strengthTab:AddSwitch("Fuerza OP", function(state)
-    AutoRepFarmEnabled = state
-    warn("[Auto Rep Farm] Estado cambiado a:", state and "ON" or "OFF")
+    getgenv()._AutoRepFarmEnabled = state
+    warn("[Auto Rep Farm] Status:", state and "ON" or "OFF")
 end)
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
