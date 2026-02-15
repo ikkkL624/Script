@@ -1,19 +1,12 @@
--- MONARCA26
-
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
--- CARGA DE LIBRERÍA
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MONARCA26X/LIBRER-A/refs/heads/main/GNIK-INKGG", true))()
 
 local player = game.Players.LocalPlayer
 local displayName = player.DisplayName or player.Name
 
--- VENTANA PRINCIPAL
-local window = library:AddWindow("The strongest Rework V2 | Bienvenido ".. displayName, {
-    main_color = Color3.fromRGB(50, 50, 190), 
-    min_size = Vector2.new(600, 820),
-    can_resize = false,
+local window = library:AddWindow("The Strongest Rework | SERVERUS |  Hello " .. displayName, {
+    main_color = Color3.fromRGB(50, 50, 190),
+    min_size = Vector2.new(650, 870),
+    can_resize = true,
 })
 
 local Main = window:AddTab("Main")
@@ -4154,6 +4147,7 @@ Credits:AddLabel("Script Packs")
 Credits:AddLabel("Siempre top") 
 
 Credits:AddLabel("Si ves esto eres el próximo en morir...")
+
 
 
 
