@@ -14,25 +14,6 @@ local window = library:AddWindow("The Strongest Rework | SERVERUS |  Hello " .. 
     can_resize = true,
 })
 
-local Main = window:AddTab("Main")
-
-Main:AddLabel('Para Mathew, King, Dilan y Aura:')
-Main:AddLabel('Gracias por bancarme siempre.')
-Main:AddLabel('En rachas rojas y noches sin dormir...')
-Main:AddLabel('ustedes me mantienen en pie.')
-Main:AddDivider()
-Main:AddLabel('Mathew: consejos reales, sin filtro.')
-Main:AddLabel('King: risas y fe cuando todo falla.')
-Main:AddLabel('Dilan: calma, no todo es urgente.')
-Main:AddLabel('Aura: energía y charlas eternas.')
-Main:AddDivider()
-Main:AddLabel('Sin ustedes, solo sería más pesado.')
-Main:AddLabel('Mi equipo, mi familia elegida.')
-Main:AddLabel('Aunque traicionen algún día...')
-Main:AddLabel('los quiero un chingo igual.')
-Main:AddLabel('En cada grind y código.')
-Main:AddLabel('MONARCA')
-
 local AutoFarm = window:AddTab("Farm op")
 AutoFarm:Show()
 
@@ -4160,17 +4141,18 @@ Gift:AddButton(
 )
 
 
-local Credits = window:AddTab("Credits")
+local Credits = window:AddTab("Nota")
 
-Credits:AddLabel(" the strongest  | MONARK")
-Credits:AddLabel("Script diseñado para Monark")
-Credits:AddLabel("Monark dominando")
-Credits:AddLabel("MCL on top by Monark")
-Credits:AddLabel("siempre en la sima del mundo")
-Credits:AddLabel("Script Packs")
-Credits:AddLabel("Siempre top") 
+Credits:AddLabel(" The Strongest Rework | MonarcaAndAura")
+Credits:AddLabel("Se que aunque alguien de ustedes va a traicionar")
+Credits:AddLabel("yo los seguire amando")
+Credits:AddLabel("Dilan")
+Credits:AddLabel("Aura")
+Credits:AddLabel("King")
+Credits:AddLabel("Mathew") 
 
-Credits:AddLabel("Si ves esto eres el próximo en morir...")
+Credits:AddLabel("A todos los amo")
+
 
 
 
