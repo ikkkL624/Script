@@ -5,7 +5,7 @@ local LocalPlayer = Players.LocalPlayer
 
 
 -- CARGA DE LIBRERÍA
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MONARCA26X/LIBRER-A/refs/heads/main/GNIK-INKGG"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MONARCA26X/LIBRER-A/refs/heads/main/GNIK-INKGG", true))()
 local player = game.Players.LocalPlayer
 local displayName = player.DisplayName or player.Name
 
@@ -4214,6 +4214,7 @@ Credits:AddLabel("Script Packs")
 Credits:AddLabel("Siempre top") 
 
 Credits:AddLabel("Si ves esto eres el próximo en morir...")
+
 
 
 
