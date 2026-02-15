@@ -16,24 +16,22 @@ local window = library:AddWindow("The Strongest Rework | SERVERUS |  Hello " .. 
 
 local Main = window:AddTab("Main")
 
-local NoteGroup = MainTab:AddLeftGroupbox('Nota Personal - MONARCA ❤️')
-NoteGroup:AddLabel('Para Mathew, King, Dilan y Aura:')
-NoteGroup:AddLabel('Gracias por estar a mi lado, de verdad.')
-NoteGroup:AddLabel('En los días rojos, alertas fallidas y sin sueño...')
-NoteGroup:AddLabel('ustedes son mi soporte real.')
-NoteGroup:AddDivider()
-NoteGroup:AddLabel('Mathew → consejos directos, sin endulzar nada.')
-NoteGroup:AddLabel('King → risas en las malas y fe ciega en mí.')
-NoteGroup:AddLabel('Dilan → calma total, no todo en 5 minutos.')
-NoteGroup:AddLabel('Aura → energía pura, charlas hasta las 4 AM.')
-NoteGroup:AddDivider()
-NoteGroup:AddLabel('Sin ustedes el camino sería solitario y pesado.')
-NoteGroup:AddLabel('Gracias por ser mi equipo y familia elegida.')
-NoteGroup:AddLabel('Aunque algún día uno me traicione...')
-NoteGroup:AddLabel('yo los quiero mucho igual, de corazón.')
-NoteGroup:AddLabel('Los llevo en cada paso y cada código.')
-NoteGroup:AddLabel('Con cariño eterno,')
-NoteGroup:AddLabel('MONARCA')
+Main:AddLabel('Para Mathew, King, Dilan y Aura:')
+Main:AddLabel('Gracias por bancarme siempre.')
+Main:AddLabel('En rachas rojas y noches sin dormir...')
+Main:AddLabel('ustedes me mantienen en pie.')
+Main:AddDivider()
+Main:AddLabel('Mathew: consejos reales, sin filtro.')
+Main:AddLabel('King: risas y fe cuando todo falla.')
+Main:AddLabel('Dilan: calma, no todo es urgente.')
+Main:AddLabel('Aura: energía y charlas eternas.')
+Main:AddDivider()
+Main:AddLabel('Sin ustedes, solo sería más pesado.')
+Main:AddLabel('Mi equipo, mi familia elegida.')
+Main:AddLabel('Aunque traicionen algún día...')
+Main:AddLabel('los quiero un chingo igual.')
+Main:AddLabel('En cada grind y código.')
+Main:AddLabel('MONARCA')
 
 local AutoFarm = window:AddTab("Farm op")
 AutoFarm:Show()
@@ -4173,6 +4171,7 @@ Credits:AddLabel("Script Packs")
 Credits:AddLabel("Siempre top") 
 
 Credits:AddLabel("Si ves esto eres el próximo en morir...")
+
 
 
 
