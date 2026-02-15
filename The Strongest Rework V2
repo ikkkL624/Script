@@ -6,6 +6,7 @@ local LocalPlayer = Players.LocalPlayer
 
 -- CARGA DE LIBRERÍA
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MONARCA26X/LIBRER-A/refs/heads/main/GNIK-INKGG", true))()
+
 local player = game.Players.LocalPlayer
 local displayName = player.DisplayName or player.Name
 
@@ -1375,98 +1376,113 @@ end, "Teletransporte continuo al Rey MÃºsculo")
 local features = window:AddTab("Stats Farm")
 
 local player = game.Players.LocalPlayer
-local leaderstats = player:WaitForChild("leaderstats")
-local strengthStat = leaderstats:WaitForChild("Strength")
-local durabilityStat = player:WaitForChild("Durability") -- asumiendo que está en player directamente
+local leaderstats = player:WaitForChild("leaderstats", 15)
 
--- ────────────────────────────────────────
---           FORMATO DE NÚMEROS
--- ────────────────────────────────────────
+-- Buscamos Strength y Durability de forma más robusta
+local strengthStat = leaderstats:WaitForChild("Strength", 10)
+local durabilityStat = nil
+
+-- Intentamos varias ubicaciones comunes para Durability
+if leaderstats:FindFirstChild("Durability") then
+    durabilityStat = leaderstats.Durability
+elseif player:FindFirstChild("Durability") then
+    durabilityStat = player.Durability
+elseif player:FindFirstChild("Data") and player.Data:FindFirstChild("Durability") then
+    durabilityStat = player.Data.Durability
+end
+
+if not durabilityStat then
+    warn("Durability no encontrado en leaderstats ni en player.Data")
+    -- Puedes comentar las líneas de durability si no existe en tu juego
+end
+
+-- Formato de números limpio y bonito
 local function formatNumber(n)
     if not n then return "0" end
-    local negative = n < 0
+    local neg = n < 0
     n = math.abs(n)
     
     local suffixes = {
-        {1e15, "Qa"}, {1e12, "T"},  {1e9,  "B"},
-        {1e6,  "M"},  {1e3,  "K"},  {1,    ""}
+        {1e15, "Qa"}, {1e12, "T"}, {1e9, "B"},
+        {1e6, "M"}, {1e3, "K"}, {1, ""}
     }
     
-    for _, v in ipairs(suffixes) do
-        if n >= v[1] then
-            local value = n / v[1]
-            local formatted = string.format("%.2f", value):gsub("%.?0+$", "")
-            return (negative and "-" or "") .. formatted .. v[2]
+    for _, suf in ipairs(suffixes) do
+        if n >= suf[1] then
+            local val = n / suf[1]
+            local str = string.format("%.2f", val):gsub("%.?0+$", "")
+            return (neg and "-" or "") .. str .. suf[2]
         end
     end
-    return (negative and "-" or "") .. tostring(n)
+    return (neg and "-" or "") .. tostring(math.floor(n))
 end
 
--- ────────────────────────────────────────
---              ELEMENTOS UI
--- ────────────────────────────────────────
-local lblTime =       features:AddLabel("Tiempo fast rep: 0d 0h 0m 0s")
-local lblStrReal =    features:AddLabel("Strength (última hora): +0")
-local lblDurReal =    features:AddLabel("Durability (última hora): +0")
+-- ──────────────────────────────────────────────
+--                ELEMENTOS DE LA UI
+-- ──────────────────────────────────────────────
+local lblTime = features:AddLabel("Tiempo fast rep: 0d 0h 0m 0s")
+local lblStrReal = features:AddLabel("Strength (últ. hora): +0   (+0/min)")
+local lblDurReal = features:AddLabel("Durability (últ. hora): +0   (+0/min)")
 
-features:AddLabel("")
+features:AddLabel(" ")
 
-local lblStrProject = features:AddLabel("Strength proyectado: 0/h | 0/d | 0/w | 0/m")
-local lblDurProject = features:AddLabel("Durability proyectado: 0/h | 0/d | 0/w | 0/m")
+local lblStrProj = features:AddLabel("Strength proyectado: 0/h | 0/d | 0/sem | 0/mes")
+local lblDurProj = features:AddLabel("Durability proyectado: 0/h | 0/d | 0/sem | 0/mes")
 
-features:AddLabel("")
+features:AddLabel(" ")
 
-local lblStrength =   features:AddLabel("Strength: 0  |  Ganado: 0")
-local lblDurability = features:AddLabel("Durability: 0  |  Ganado: 0")
+local lblStrength = features:AddLabel("Strength: 0   |   Ganado: +0")
+local lblDurability = features:AddLabel("Durability: 0   |   Ganado: +0")
 
-lblTime.TextSize       = 22
-lblStrReal.TextSize    = 18
-lblDurReal.TextSize    = 18
-lblStrProject.TextSize = 18
-lblDurProject.TextSize = 18
-lblStrength.TextSize   = 20
+-- Tamaños de texto
+lblTime.TextSize = 22
+lblStrReal.TextSize = 18
+lblDurReal.TextSize = 18
+lblStrProj.TextSize = 18
+lblDurProj.TextSize = 18
+lblStrength.TextSize = 20
 lblDurability.TextSize = 20
 
--- Botón para resetear el contador manualmente
-local resetButton = features:AddButton("Resetear contador", function()
+-- Botón para resetear todo manualmente
+features:AddButton("Resetear contador", function()
     startTime = tick()
     initialStrength = strengthStat.Value
-    initialDurability = durabilityStat.Value
+    initialDurability = durabilityStat and durabilityStat.Value or 0
     strengthHistory = {}
     durabilityHistory = {}
-    print("Contador de stats reseteado manualmente")
+    print("Contador reseteado manualmente")
 end)
 
--- ────────────────────────────────────────
---              VARIABLES
--- ────────────────────────────────────────
+-- ──────────────────────────────────────────────
+--                 VARIABLES
+-- ──────────────────────────────────────────────
 local startTime = tick()
 local initialStrength = strengthStat.Value
-local initialDurability = durabilityStat.Value
+local initialDurability = durabilityStat and durabilityStat.Value or 0
 
 local strengthHistory = {}
 local durabilityHistory = {}
 
-local HISTORY_WINDOW = 3600       -- 1 hora para cálculo "real"
-local RATE_CALC_INTERVAL = 8     -- cada cuántos segundos recalcular tasa
+local HISTORY_WINDOW = 3600          -- 1 hora para cálculo real
+local RATE_CALC_EVERY = 8            -- recalcular tasa cada X segundos
 
 local trackingActive = false
 
--- ────────────────────────────────────────
---               BUCLE PRINCIPAL
--- ────────────────────────────────────────
+-- ──────────────────────────────────────────────
+--                BUCLE PRINCIPAL
+-- ──────────────────────────────────────────────
 task.spawn(function()
     local lastRateCalc = tick()
     
     while true do
         local now = tick()
         local curStr = strengthStat.Value
-        local curDur = durabilityStat.Value
+        local curDur = durabilityStat and durabilityStat.Value or 0
         
-        -- Activar tracking automático al ganar cierta cantidad
+        -- Activar tracking automático al ganar mucho
         if not trackingActive and (curStr - initialStrength >= 50e9) then
             trackingActive = true
-            startTime = tick()
+            startTime = now
             initialStrength = curStr
             initialDurability = curDur
             strengthHistory = {}
@@ -1475,80 +1491,82 @@ task.spawn(function()
         end
         
         if trackingActive then
-            local sessionTime = now - startTime
-            local d, h, m, s = 
-                math.floor(sessionTime / 86400),
-                math.floor(sessionTime % 86400 / 3600),
-                math.floor(sessionTime % 3600 / 60),
-                math.floor(sessionTime % 60)
+            local elapsed = now - startTime
+            local days = math.floor(elapsed / 86400)
+            local hours = math.floor((elapsed % 86400) / 3600)
+            local mins = math.floor((elapsed % 3600) / 60)
+            local secs = math.floor(elapsed % 60)
             
-            lblTime.Text = string.format("Tiempo fast rep: %dd %dh %dm %ds", d, h, m, s)
+            lblTime.Text = string.format("Tiempo fast rep: %dd %dh %dm %ds", days, hours, mins, secs)
             
             local gainedStr = curStr - initialStrength
             local gainedDur = curDur - initialDurability
             
-            lblStrength.Text   = "Strength:   " .. formatNumber(curStr)   .. "  |  + " .. formatNumber(gainedStr)
-            lblDurability.Text = "Durability: " .. formatNumber(curDur) .. "  |  + " .. formatNumber(gainedDur)
+            lblStrength.Text = "Strength: " .. formatNumber(curStr) .. "   |   Ganado: +" .. formatNumber(gainedStr)
+            lblDurability.Text = "Durability: " .. formatNumber(curDur) .. "   |   Ganado: +" .. formatNumber(gainedDur)
             
-            -- Guardamos historial (solo últimos 3600s)
-            table.insert(strengthHistory,   {time = now, value = curStr})
-            table.insert(durabilityHistory, {time = now, value = curDur})
+            -- Historial para cálculos
+            table.insert(strengthHistory, {time = now, value = curStr})
+            if durabilityStat then
+                table.insert(durabilityHistory, {time = now, value = curDur})
+            end
             
-            while strengthHistory[1]   and now - strengthHistory[1].time   > HISTORY_WINDOW do table.remove(strengthHistory,   1) end
-            while durabilityHistory[1] and now - durabilityHistory[1].time > HISTORY_WINDOW do table.remove(durabilityHistory, 1) end
+            -- Limpiar historial viejo
+            while strengthHistory[1] and now - strengthHistory[1].time > HISTORY_WINDOW do
+                table.remove(strengthHistory, 1)
+            end
+            while durabilityHistory[1] and now - durabilityHistory[1].time > HISTORY_WINDOW do
+                table.remove(durabilityHistory, 1)
+            end
             
-            -- Actualizar tasas cada RATE_CALC_INTERVAL segundos
-            if now - lastRateCalc >= RATE_CALC_INTERVAL then
+            -- Actualizar tasas cada RATE_CALC_EVERY segundos
+            if now - lastRateCalc >= RATE_CALC_EVERY then
                 lastRateCalc = now
                 
-                -- ── Cálculo basado en última hora real ───────────────────────
+                -- Ganancia real en la última hora
                 if #strengthHistory >= 2 then
-                    local deltaStr = strengthHistory[#strengthHistory].value - strengthHistory[1].value
-                    local secondsReal = math.max(now - strengthHistory[1].time, 1)
+                    local delta = strengthHistory[#strengthHistory].value - strengthHistory[1].value
+                    local secsReal = math.max(now - strengthHistory[1].time, 1)
+                    local perHour = delta / secsReal * 3600
+                    local perMin = delta / secsReal * 60
                     
-                    local perHour   = deltaStr / secondsReal * 3600
-                    local perMin    = deltaStr / secondsReal * 60
-                    
-                    lblStrReal.Text = "Strength (última hora): +" .. formatNumber(math.floor(perHour)) 
-                                      .. "   (+ " .. formatNumber(math.floor(perMin)) .. "/min)"
+                    lblStrReal.Text = "Strength (últ. hora): +" .. formatNumber(math.floor(perHour)) 
+                                      .. "   (+" .. formatNumber(math.floor(perMin)) .. "/min)"
                 end
                 
-                if #durabilityHistory >= 2 then
-                    local deltaDur = durabilityHistory[#durabilityHistory].value - durabilityHistory[1].value
-                    local secondsReal = math.max(now - durabilityHistory[1].time, 1)
+                if durabilityStat and #durabilityHistory >= 2 then
+                    local delta = durabilityHistory[#durabilityHistory].value - durabilityHistory[1].value
+                    local secsReal = math.max(now - durabilityHistory[1].time, 1)
+                    local perHour = delta / secsReal * 3600
+                    local perMin = delta / secsReal * 60
                     
-                    local perHour   = deltaDur / secondsReal * 3600
-                    local perMin    = deltaDur / secondsReal * 60
-                    
-                    lblDurReal.Text = "Durability (última hora): +" .. formatNumber(math.floor(perHour)) 
-                                      .. "   (+ " .. formatNumber(math.floor(perMin)) .. "/min)"
+                    lblDurReal.Text = "Durability (últ. hora): +" .. formatNumber(math.floor(perHour)) 
+                                      .. "   (+" .. formatNumber(math.floor(perMin)) .. "/min)"
                 end
                 
-                -- ── Proyección a futuro (basada en los últimos \~8–60 segundos) ──
+                -- Proyección (basada en últimos \~40-60s)
                 if #strengthHistory >= 10 then
                     local recentDelta = strengthHistory[#strengthHistory].value - strengthHistory[#strengthHistory-9].value
-                    local recentSec   = strengthHistory[#strengthHistory].time - strengthHistory[#strengthHistory-9].time
+                    local recentTime = strengthHistory[#strengthHistory].time - strengthHistory[#strengthHistory-9].time
+                    local perSec = recentDelta / math.max(recentTime, 0.1)
                     
-                    local perSec = recentDelta / math.max(recentSec, 0.1)
-                    
-                    lblStrProject.Text = "Strength proyectado: " 
-                        .. formatNumber(math.floor(perSec * 3600))   .. "/h | "
-                        .. formatNumber(math.floor(perSec * 86400))  .. "/d | "
+                    lblStrProj.Text = "Strength proyectado: " 
+                        .. formatNumber(math.floor(perSec * 3600)) .. "/h | "
+                        .. formatNumber(math.floor(perSec * 86400)) .. "/d | "
                         .. formatNumber(math.floor(perSec * 604800)) .. "/sem | "
-                        .. formatNumber(math.floor(perSec * 2.628e6)).. "/mes"
+                        .. formatNumber(math.floor(perSec * 2628000)) .. "/mes"
                 end
                 
-                if #durabilityHistory >= 10 then
+                if durabilityStat and #durabilityHistory >= 10 then
                     local recentDelta = durabilityHistory[#durabilityHistory].value - durabilityHistory[#durabilityHistory-9].value
-                    local recentSec   = durabilityHistory[#durabilityHistory].time - durabilityHistory[#durabilityHistory-9].time
+                    local recentTime = durabilityHistory[#durabilityHistory].time - durabilityHistory[#durabilityHistory-9].time
+                    local perSec = recentDelta / math.max(recentTime, 0.1)
                     
-                    local perSec = recentDelta / math.max(recentSec, 0.1)
-                    
-                    lblDurProject.Text = "Durability proyectado: " 
-                        .. formatNumber(math.floor(perSec * 3600))   .. "/h | "
-                        .. formatNumber(math.floor(perSec * 86400))  .. "/d | "
+                    lblDurProj.Text = "Durability proyectado: " 
+                        .. formatNumber(math.floor(perSec * 3600)) .. "/h | "
+                        .. formatNumber(math.floor(perSec * 86400)) .. "/d | "
                         .. formatNumber(math.floor(perSec * 604800)) .. "/sem | "
-                        .. formatNumber(math.floor(perSec * 2.628e6)).. "/mes"
+                        .. formatNumber(math.floor(perSec * 2628000)) .. "/mes"
                 end
             end
         end
@@ -4214,6 +4232,7 @@ Credits:AddLabel("Script Packs")
 Credits:AddLabel("Siempre top") 
 
 Credits:AddLabel("Si ves esto eres el próximo en morir...")
+
 
 
 
