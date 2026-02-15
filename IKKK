@@ -15,6 +15,34 @@ local window = library:AddWindow("The Strongest Rework | SERVERUS |  Hello " .. 
 })
 
 local Main = window:AddTab("Main")
+// =============================================================================
+//                          NOTA PERSONAL - MAIN
+// =============================================================================
+//
+//   Para Mathew, King, Dilan y Aura:
+//
+//   Gracias por estar a mi lado, de verdad.
+//   En los días en que el gráfico se pone rojo, las alertas fallan,
+//   el sueño no llega y parece que nada tiene sentido...
+//   ustedes han sido el soporte que me mantiene en pie.
+//
+//   Mathew → por tus consejos directos y por nunca endulzarme la realidad.
+//   King   → por las risas cuando todo está en contra y por creer en mí más que yo mismo.
+//   Dilan  → por tu calma infinita y por recordarme que no todo se resuelve en 5 minutos.
+//   Aura   → por tu energía, por escucharme hasta las 4 de la mañana y por hacerme sentir que valgo la pena.
+//
+//   No sé si algún día este script (o yo) llegue a algún lado importante,
+//   pero lo que sí sé es que sin ustedes este camino habría sido mucho más solitario y pesado.
+//
+//   Gracias por ser mi equipo, mi familia elegida, mi motivo para seguir dándolo todo.
+//   Se que aunque en algún momento uno de usted me va a traicionar yo los quiero mucho.
+//
+//   Los llevo conmigo en cada paso, en cada consejo, loa amo a todos
+//
+//   Con cariño eterno,
+//   MONARCA
+//
+// =============================================================================
 
 local AutoFarm = window:AddTab("Farm op")
 AutoFarm:Show()
@@ -4154,6 +4182,7 @@ Credits:AddLabel("Script Packs")
 Credits:AddLabel("Siempre top") 
 
 Credits:AddLabel("Si ves esto eres el próximo en morir...")
+
 
 
 
