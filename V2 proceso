@@ -311,7 +311,7 @@ rebirthTab:AddSwitch("Fast Rebirth (Auto Farm)", function(state)
     end
 end)
 
-local AutoFarm = window:AddTab("Farm OP")
+local AutoFarm = Window:AddTab("Farm OP")
 AutoFarm:Show()
 
 -- Estado inicial
