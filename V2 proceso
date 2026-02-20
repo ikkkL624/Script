@@ -581,23 +581,20 @@ AutoFarm:AddSwitch("Anti Lag (Full Black)", function(State)
     end
 end)
 
-print("[Strength Op] Código adaptado y funcionando - Fuerza OP + Equip + Jungle Squat + Eat Egg + Anti Lag")
+AutoFarm:AddLabel(" ").TextSize = 10
+AutoFarm:AddLabel("📈 Gains Real-Time").TextSize = 18
 
--- Calculadora gains real-time (se mantiene intacta)
-strengthTab:AddLabel(" ").TextSize = 10
-strengthTab:AddLabel("📈 Gains Real-Time").TextSize = 18
-
-local stopwatchLabel = strengthTab:AddLabel("Fast Rep Time: 0d 0h 0m 0s")
+local stopwatchLabel = AutoFarm:AddLabel("Fast Rep Time: 0d 0h 0m 0s")
 stopwatchLabel.TextSize = 20
 
-local projectedStrengthLabel = strengthTab:AddLabel("Strength Rate: 0 /Hour | 0 /Day | 0 /Week | 0 /Month")
+local projectedStrengthLabel = AutoFarm:AddLabel("Strength Rate: 0 /Hour | 0 /Day | 0 /Week | 0 /Month")
 projectedStrengthLabel.TextSize = 18
 
-local dailyStrengthLabel = strengthTab:AddLabel("Strength por Día: 0")
+local dailyStrengthLabel = AutoFarm:AddLabel("Strength por Día: 0")
 dailyStrengthLabel.TextSize = 20
 dailyStrengthLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
 
-local strengthLabel = strengthTab:AddLabel("Strength: 0 | Gained: 0")
+local strengthLabel = AutoFarm:AddLabel("Strength: 0 | Gained: 0")
 strengthLabel.TextSize = 20
 
 local startTime = tick()
