@@ -53,18 +53,18 @@ print("Acceso autorizado - Script listo")
 local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/red.luau"))()
 
 local Window = bd:AddWindow("The Strongest Rework | Farming ", {
-    min_size = Vector2.new(450, 450),
+    min_size = Vector2.new(550, 550),  -- Tamaño mínimo 550x550 como pediste
     background = {
-        [1] = Color3.fromRGB(255, 230, 240),   -- Rosa muy claro (fondo inicio)
-        [2] = Color3.fromRGB(255, 182, 193)    -- Rosa suave (fondo fin)
+        [1] = Color3.fromRGB(220, 240, 255),   -- Azul pastel muy claro (inicio fondo)
+        [2] = Color3.fromRGB(180, 220, 255)    -- Azul pastel suave (fin fondo)
     },
-    main_color = Color3.fromRGB(255, 105, 180),   -- Rosa medio-fuerte (textos/bordes)
+    main_color = Color3.fromRGB(120, 180, 255),   -- Azul pastel medio-fuerte para textos y bordes
     can_resize = true,
     title_bar_transparency = 0.20,
     background_transparency = 0.12,
     title_bar = {
-        [1] = Color3.fromRGB(255, 20, 147),    -- Rosa intenso (barra inicio)
-        [2] = Color3.fromRGB(219, 112, 147)    -- Rosa fuerte medio (barra fin)
+        [1] = Color3.fromRGB(80, 140, 255),    -- Azul pastel oscuro/intenso (barra inicio)
+        [2] = Color3.fromRGB(100, 160, 255)    -- Azul pastel brillante (barra fin)
     }
 })
 
