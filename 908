@@ -55,7 +55,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MONAR
 local player = game.Players.LocalPlayer
 local displayName = player.DisplayName or player.Name
 
-local window = library:AddWindow("The Strongest Rework | SC Top |  Hello " .. displayName, {
+local Window = library:AddWindow("The Strongest Rework | SC Top |  Hello " .. displayName, {
     main_color = Color3.fromRGB(50, 50, 190),
     min_size = Vector2.new(550, 550),
     can_resize = true,
