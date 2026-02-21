@@ -50,22 +50,15 @@ StarterGui:SetCore("SendNotification", {
 
 print("Acceso autorizado - Script listo")
 
-local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/red.luau"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/MONARCA26X/LIBRER-A/refs/heads/main/GNIK-INKGG", true))()
 
-local Window = bd:AddWindow("The Strongest Rework | Farming ", {
-    min_size = Vector2.new(550, 550),  -- Tamaño mínimo 550x550 como pediste
-    background = {
-        [1] = Color3.fromRGB(220, 240, 255),   -- Azul pastel muy claro (inicio fondo)
-        [2] = Color3.fromRGB(180, 220, 255)    -- Azul pastel suave (fin fondo)
-    },
-    main_color = Color3.fromRGB(120, 180, 255),   -- Azul pastel medio-fuerte para textos y bordes
+local player = game.Players.LocalPlayer
+local displayName = player.DisplayName or player.Name
+
+local window = library:AddWindow("The Strongest Rework | SC Top |  Hello " .. displayName, {
+    main_color = Color3.fromRGB(50, 50, 190),
+    min_size = Vector2.new(550, 550),
     can_resize = true,
-    title_bar_transparency = 0.20,
-    background_transparency = 0.12,
-    title_bar = {
-        [1] = Color3.fromRGB(80, 140, 255),    -- Azul pastel oscuro/intenso (barra inicio)
-        [2] = Color3.fromRGB(100, 160, 255)    -- Azul pastel brillante (barra fin)
-    }
 })
 
 local player = game.Players.LocalPlayer
