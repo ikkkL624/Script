@@ -55,16 +55,16 @@ local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/L
 local Window = bd:AddWindow("The Strongest Rework | Farming ", {
     min_size = Vector2.new(550, 550),  -- Tamaño mínimo 550x550 como pediste
     background = {
-        [1] = Color3.fromRGB(220, 240, 255),   -- Azul pastel muy claro (inicio fondo)
-        [2] = Color3.fromRGB(180, 220, 255)    -- Azul pastel suave (fin fondo)
+        [1] = Color3.fromRGB(20, 20, 25),   -- Negro profundo con toque gris (inicio fondo)
+        [2] = Color3.fromRGB(35, 35, 40)    -- Gris oscuro suave (fin fondo)
     },
-    main_color = Color3.fromRGB(120, 180, 255),   -- Azul pastel medio-fuerte para textos y bordes
+    main_color = Color3.fromRGB(200, 200, 210),   -- Gris claro fuerte para textos y bordes
     can_resize = true,
     title_bar_transparency = 0.20,
     background_transparency = 0.12,
     title_bar = {
-        [1] = Color3.fromRGB(80, 140, 255),    -- Azul pastel oscuro/intenso (barra inicio)
-        [2] = Color3.fromRGB(100, 160, 255)    -- Azul pastel brillante (barra fin)
+        [1] = Color3.fromRGB(10, 10, 15),     -- Negro intenso (barra título inicio)
+        [2] = Color3.fromRGB(40, 40, 50)      -- Gris oscuro fuerte (barra título fin)
     }
 })
 
