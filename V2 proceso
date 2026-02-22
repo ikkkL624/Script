@@ -124,14 +124,14 @@ lblStats.TextSize = 17
 
 local lblTimer = rebirthTab:AddLabel("0d 0h 0m 0s - Inactive")
 lblTimer.TextSize = 15
-lblTimer.TextColor3 = Color3.fromRGB(0, 0, 255)
+lblTimer.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local lblCurrentPace = rebirthTab:AddLabel("Pace: 0/Seg | 0/Min | 0/Hora | 0/Día | 0/Sem | 0/Mes")
 lblCurrentPace.TextSize = 15
 
 local lblRebirthsInfo = rebirthTab:AddLabel("Rebirths actuales: 0 | Gained: 0")
 lblRebirthsInfo.TextSize = 16
-lblRebirthsInfo.TextColor3 = Color3.fromRGB(0, 0, 255)
+lblRebirthsInfo.TextColor3 = Color3.fromRGB(255, 255, 255)
 
 local toggleTrack, _ = rebirthTab:AddSwitch("Start Tracking", function(state)
     tracking = state
@@ -139,11 +139,11 @@ local toggleTrack, _ = rebirthTab:AddSwitch("Start Tracking", function(state)
         gainedRebirths = 0
         startTimeRebirth = tick()
         rebirthHistory = {}
-        lblTimer.TextColor3 = Color3.fromRGB(0, 0, 255)
+        lblTimer.TextColor3 = Color3.fromRGB(255, 255, 255)
         lblTimer.Text = "0d 0h 0m 0s - Active"
         print("[Rebirth] Tracking INICIADO")
     else
-        lblTimer.TextColor3 = Color3.fromRGB(0,  0, 255)
+        lblTimer.TextColor3 = Color3.fromRGB(255,  255, 255)
         lblTimer.Text = formatTime(tick() - startTimeRebirth) .. " - Inactive"
         print("[Rebirth] Tracking DETENIDO")
     end
