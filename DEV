@@ -371,6 +371,271 @@ local lockSwitch = FastRebTab:AddSwitch("Lock Position", function(state)
     end
 end)
 
+local miscLabel = FastRebTab:AddLabel("Misc:")
+miscLabel.TextSize = 20
+
+-- Anti-AFK variables
+local antiAfkRunning = false
+local antiAfkThread = nil
+local timerThread = nil
+local pingThread = nil
+local gui = nil
+
+local antiAfkSwitch = FastRebTab:AddSwitch("Anti AFK", function(state)
+    antiAfkRunning = state
+
+    if state then
+        
+        if gui and gui.Parent then
+            gui:Destroy()
+            gui = nil
+        end
+
+        -- Create GUI
+        local sg = Instance.new("ScreenGui")
+        sg.Name = "AntiAfkOverlay"
+        sg.Parent = game.CoreGui
+        sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        gui = sg
+
+        local frame = Instance.new("Frame")
+        frame.Name = "MainFrame"
+        frame.Parent = sg
+        frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        frame.Position = UDim2.new(0.085, 0, 0.13, 0)
+        frame.Size = UDim2.new(0, 225, 0, 96)
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 6)
+        corner.Parent = frame
+
+        -- X button (close)
+        local closeBtn = Instance.new("TextButton")
+        closeBtn.Name = "Close"
+        closeBtn.Parent = frame
+        closeBtn.BackgroundTransparency = 1
+        closeBtn.Position = UDim2.new(0.87, 0, 0.02, 0)
+        closeBtn.Size = UDim2.new(0, 27, 0, 15)
+        closeBtn.Font = Enum.Font.SourceSans
+        closeBtn.Text = "X"
+        closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        closeBtn.TextSize = 14
+
+        closeBtn.MouseButton1Click:Connect(function()
+            antiAfkSwitch:Set(false)   -- this will trigger the else branch below
+        end)
+
+        -- Title
+        local title = Instance.new("TextLabel")
+        title.Parent = frame
+        title.BackgroundTransparency = 1
+        title.Position = UDim2.new(0.3, 0, 0, 0)
+        title.Size = UDim2.new(0, 95, 0, 24)
+        title.Font = Enum.Font.SourceSans
+        title.Text = "The Strongest Rework"
+        title.TextColor3 = Color3.fromRGB(255, 255, 255)
+        title.TextSize = 14
+
+        -- Timer label
+        local timerLabel = Instance.new("TextLabel")
+        timerLabel.Name = "Timer"
+        timerLabel.Parent = frame
+        timerLabel.BackgroundTransparency = 1
+        timerLabel.Position = UDim2.new(0.65, 0, 0.68, 0)
+        timerLabel.Size = UDim2.new(0, 60, 0, 24)
+        timerLabel.Font = Enum.Font.SourceSans
+        timerLabel.Text = "0:0:0"
+        timerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        timerLabel.TextSize = 14
+
+        -- FPS
+        local fpsLabel = Instance.new("TextLabel")
+        fpsLabel.Name = "FPS"
+        fpsLabel.Parent = frame
+        fpsLabel.BackgroundTransparency = 1
+        fpsLabel.Position = UDim2.new(0.72, 0, 0.35, 0)
+        fpsLabel.Size = UDim2.new(0, 55, 0, 24)
+        fpsLabel.Font = Enum.Font.SourceSans
+        fpsLabel.Text = "0"
+        fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        fpsLabel.TextSize = 14
+
+        local fpsPrefix = Instance.new("TextLabel")
+        fpsPrefix.Parent = frame
+        fpsPrefix.BackgroundTransparency = 1
+        fpsPrefix.Position = UDim2.new(0.5, 0, 0.35, 0)
+        fpsPrefix.Size = UDim2.new(0, 26, 0, 24)
+        fpsPrefix.Font = Enum.Font.SourceSans
+        fpsPrefix.Text = "Fps:"
+        fpsPrefix.TextColor3 = Color3.fromRGB(255, 255, 255)
+        fpsPrefix.TextSize = 14
+
+        -- Ping
+        local pingLabel = Instance.new("TextLabel")
+        pingLabel.Name = "Ping"
+        pingLabel.Parent = frame
+        pingLabel.BackgroundTransparency = 1
+        pingLabel.Position = UDim2.new(0.2, 0, 0.37, 0)
+        pingLabel.Size = UDim2.new(0, 55, 0, 24)
+        pingLabel.Font = Enum.Font.SourceSans
+        pingLabel.Text = "0"
+        pingLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        pingLabel.TextSize = 14
+
+        local pingPrefix = Instance.new("TextLabel")
+        pingPrefix.Parent = frame
+        pingPrefix.BackgroundTransparency = 1
+        pingPrefix.Position = UDim2.new(0.03, 0, 0.37, 0)
+        pingPrefix.Size = UDim2.new(0, 29, 0, 24)
+        pingPrefix.Font = Enum.Font.SourceSans
+        pingPrefix.Text = "Ping:"
+        pingPrefix.TextColor3 = Color3.fromRGB(255, 255, 255)
+        pingPrefix.TextSize = 14
+
+        -- Separator line
+        local line = Instance.new("Frame")
+        line.Parent = frame
+        line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        line.Position = UDim2.new(0.004, 0, 0.24, 0)
+        line.Size = UDim2.new(0, 224, 0, 5)
+
+        local lineCorner = Instance.new("UICorner")
+        lineCorner.CornerRadius = UDim.new(1, 0)
+        lineCorner.Parent = line
+
+        -- Status text
+        local status = Instance.new("TextLabel")
+        status.Parent = frame
+        status.BackgroundTransparency = 1
+        status.Position = UDim2.new(0.05, 0, 0.81, 0)
+        status.Size = UDim2.new(0, 95, 0, 12)
+        status.Font = Enum.Font.SourceSans
+        status.Text = "Anti-AFK Auto Enabled"
+        status.TextColor3 = Color3.fromRGB(255, 255, 255)
+        status.TextSize = 14
+
+        -- Draggable
+        local dragging, dragInput, dragStart, startPos
+        local function updateDrag(input)
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+        end
+
+        frame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+
+        frame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                updateDrag(input)
+            end
+        end)
+
+        -- ── Anti-AFK logic ──────────────────────────────────────────────────
+        local vu = game:GetService("VirtualUser")
+        local connection = game.Players.LocalPlayer.Idled:Connect(function()
+            vu:CaptureController()
+            vu:ClickButton2(Vector2.new())
+        end)
+
+        -- FPS counter
+        local RunService = game:GetService("RunService")
+        local fpsTable = {}
+        local lastTick = tick()
+
+        local fpsConn = RunService.RenderStepped:Connect(function()
+            local now = tick()
+            table.insert(fpsTable, now)
+            for i = #fpsTable, 1, -1 do
+                if fpsTable[i] < now - 1 then
+                    table.remove(fpsTable, i)
+                end
+            end
+            local fps = #fpsTable
+            fpsLabel.Text = tostring(fps)
+        end)
+
+        -- Ping updater
+        pingThread = task.spawn(function()
+            local stats = game:GetService("Stats")
+            local pingStat = stats:FindFirstChild("PerformanceStats") and stats.PerformanceStats:FindFirstChild("Ping")
+
+            while antiAfkRunning and pingStat do
+                pingLabel.Text = math.floor(tonumber(pingStat:GetValue()) or 0)
+                task.wait(1.5)
+            end
+        end)
+
+        -- Timer
+        local sec, min, hour = 0, 0, 0
+        timerThread = task.spawn(function()
+            while antiAfkRunning do
+                sec = sec + 1
+                if sec >= 60 then
+                    sec = 0
+                    min = min + 1
+                end
+                if min >= 60 then
+                    min = 0
+                    hour = hour + 1
+                end
+                timerLabel.Text = string.format("%d:%d:%02d", hour, min, sec)
+                task.wait(1)
+            end
+        end)
+
+        -- Store cleanup references
+        antiAfkThread = {
+            idledConn = connection,
+            fpsConn = fpsConn,
+            destroy = function()
+                if connection then connection:Disconnect() end
+                if fpsConn then fpsConn:Disconnect() end
+                if pingThread then task.cancel(pingThread) end
+                if timerThread then task.cancel(timerThread) end
+                if sg then sg:Destroy() end
+                gui = nil
+            end
+        }
+
+    else
+        -- ── Turn OFF ────────────────────────────────────────────────────────
+        if antiAfkThread and antiAfkThread.destroy then
+            antiAfkThread.destroy()
+            antiAfkThread = nil
+        end
+
+        if gui then
+            gui:Destroy()
+            gui = nil
+        end
+
+        if timerThread then task.cancel(timerThread) timerThread = nil end
+        if pingThread then task.cancel(pingThread) pingThread = nil end
+    end
+end)
+
 local function activateShake()
     local tool = player.Character:FindFirstChild("Tropical Shake") or player.Backpack:FindFirstChild("Tropical Shake")
     if tool then
@@ -809,10 +1074,10 @@ end)
 
 local infoTab = window:AddTab("Info")
 infoTab:Show()
-infoTab:AddLabel("Made by Henne ♥️").TextSize = 20
-infoTab:AddLabel("discord.gg/silencev1").TextSize = 20
+infoTab:AddLabel("Made by Monarca ♥️").TextSize = 20
+infoTab:AddLabel("discord.gg").TextSize = 20
 infoTab:AddButton("Copy Invite", function()
-    local link = "https://discord.gg/9eFf93Kg8D"
+    local link = "https://discord.gg/JcXwFQwhJ"
     if setclipboard then
         setclipboard(link)
         game.StarterGui:SetCore("SendNotification", {
