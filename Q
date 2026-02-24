@@ -68,7 +68,7 @@ local rebirthsStat = leaderstats:WaitForChild("Rebirths")
 local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/UiMonarca", true))()
 
 local window = library:AddWindow("The Strongest | Farming", {
-    main_color = Color3.fromRGB(30, 30, 30),
+    main_color = Color3.fromRGB(0, 0, 255),
     min_size = Vector2.new(600, 600),
     can_resize = false
 })
