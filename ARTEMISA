@@ -1091,7 +1091,7 @@ infoTab:AddButton("Copy Invite", function()
     end
 end)
 infoTab:AddLabel("")
-local wLabel = infoTab:AddLabel("ARTRMISA")
+local wLabel = infoTab:AddLabel("ARTEMISA")
 wLabel.TextSize = 40
 wLabel.Font = Enum.Font.Arcade
 
