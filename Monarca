@@ -44,15 +44,15 @@ end
 -- AUTORIZADO ✅
 StarterGui:SetCore("SendNotification", {
     Title = "Whitelist OK";
-    Text = "Acceso autorizado para " .. LocalPlayer.Name .. " | ¡Rebirth anti-leech activo!";
-    Duration = 4;
+    Text = "Acceso autorizado para " .. LocalPlayer.Name .. " | ¡Ty, estas en wl!";
+    Duration = 7;
 })
 
 print("Acceso autorizado - Script listo")
 
 local bd = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/red.luau"))()
 
-local Window = bd:AddWindow("The Strongest Rework | Farming ", {
+local Window = bd:AddWindow("The Severus | Farming ", {
     min_size = Vector2.new(550, 550),  -- Tamaño mínimo 550x550 como pediste
     background = {
         [1] = Color3.fromRGB(20, 20, 25),   -- Negro profundo con toque gris (inicio fondo)
@@ -480,7 +480,7 @@ task.spawn(function()
     end
 end)
 
-AutoFarm:AddSwitch("Eat Egg (30 Min)", function(state)
+AutoFarm:AddSwitch("Eat Egg 30 min PROCESO", function(state)
     autoEatEnabled = state
     print(state and "[AutoEgg] Activado." or "[AutoEgg] Desactivado.")
 end)
@@ -539,7 +539,7 @@ end)
 getgenv().AntiLagBlackScreen = false
 local blackGui = nil
 
-AutoFarm:AddSwitch("Anti Lag (Full Black)", function(State)
+AutoFarm:AddSwitch("Anti Lag", function(State)
     getgenv().AntiLagBlackScreen = State
     local lighting = game:GetService("Lighting")
     if State then
@@ -654,9 +654,8 @@ task.spawn(function()
     end
 end)
 
-local miscTab = Window:AddTab("Misc")
+local miscTab = Window:AddTab("Misc v2")
 
--- Anti-AFK con GUI (sin saltos)
 getgenv().AntiAfkExecuted = false
 getgenv().zamanbaslaticisi = false
 
@@ -690,7 +689,7 @@ miscTab:AddSwitch("Anti AFK", function(state)
 
         madebybloodofbatus.Name = "madebybloodofbatus"
         madebybloodofbatus.Parent = thisoneissocoldww
-        madebybloodofbatus.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+        madebybloodofbatus.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
         madebybloodofbatus.Position = UDim2.new(0.085,0,0.13,0)
         madebybloodofbatus.Size = UDim2.new(0,225,0,96)
         UICornerw.Parent = madebybloodofbatus
@@ -715,7 +714,7 @@ miscTab:AddSwitch("Anti AFK", function(state)
         uselesslabelone.Position = UDim2.new(0.3,0,0,0)
         uselesslabelone.Size = UDim2.new(0,95,0,24)
         uselesslabelone.Font = Enum.Font.SourceSans
-        uselesslabelone.Text = "The Strongest Rework"
+        uselesslabelone.Text = "The Severus By Monarca"
         uselesslabelone.TextColor3 = Color3.fromRGB(255,255,255)
         uselesslabelone.TextSize = 14
 
@@ -861,20 +860,6 @@ miscTab:AddSwitch("Anti AFK", function(state)
     end
 end)
 
--- Hide All Frames
-getgenv().HideFramesEnabled = false
-
-miscTab:AddSwitch("Hide All Frames", function(state)
-    getgenv().HideFramesEnabled = state
-    local rSto = game:GetService("ReplicatedStorage")
-    for _, obj in pairs(rSto:GetDescendants()) do
-        if obj:IsA("Frame") or obj:IsA("GuiObject") or obj.Name:match("Frame$") then
-            pcall(function() obj.Visible = not state end)
-        end
-    end
-    warn("[Misc] Frames " .. (state and "OCULTOS" or "VISIBLES"))
-end)
-
 -- Cambio Día/Noche
 miscTab:AddSwitch("Noche", function(state)
     local Lighting = game:GetService("Lighting")
@@ -888,144 +873,5 @@ miscTab:AddSwitch("Noche", function(state)
         Lighting.Brightness = 5
         Lighting.Ambient = Color3.fromRGB(200, 200, 200)
         warn("[Misc] Modo DÍA")
-    end
-end)
-
-miscTab:AddSwitch("Anti-Lag (Pantalla Negra - Solo Script)", function(state)
-    getgenv().AntiLagBlackScreen = state
-    local Lighting = game:GetService("Lighting")
-    
-    if state then
-        -- Crear pantalla negra completa (100% opaco)
-        if not blackGui then
-            blackGui = Instance.new("ScreenGui")
-            blackGui.Name = "AntiLagBlack"
-            blackGui.IgnoreGuiInset = true
-            blackGui.ResetOnSpawn = false  -- No se destruye al respawnear
-            blackGui.Parent = game.CoreGui  -- En CoreGui para que cubra todo
-
-            local blackFrame = Instance.new("Frame")
-            blackFrame.Name = "BlackOverlay"
-            blackFrame.Size = UDim2.new(1, 0, 1, 0)
-            blackFrame.Position = UDim2.new(0, 0, 0, 0)
-            blackFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Negro puro
-            blackFrame.BackgroundTransparency = 0  -- 0% transparente (100% negro)
-            blackFrame.BorderSizePixel = 0
-            blackFrame.ZIndex = 999999  -- Muy alto para cubrir todo
-            blackFrame.Parent = blackGui
-
-            -- Asegurar que la GUI de tu script quede encima
-            Window.Frame.ZIndex = 1000000  -- Tu ventana del script por encima del negro
-            Window.Frame.Visible = true
-        end
-
-        -- Reducir calidad gráfica para menos lag
-        Lighting.GlobalShadows = false
-        Lighting.Brightness = 0
-        Lighting.EnvironmentDiffuseScale = 0
-        Lighting.EnvironmentSpecularScale = 0
-        Lighting.FogEnd = 100
-        for _, effect in pairs(Lighting:GetChildren()) do
-            if effect:IsA("PostEffect") or effect:IsA("Sky") then
-                pcall(function() effect.Enabled = false end)
-            end
-        end
-
-        warn("[Misc] ANTI-LAG ACTIVADO → Pantalla negra 100%, solo se ve el script")
-    else
-        -- Restaurar
-        if blackGui then
-            blackGui:Destroy()
-            blackGui = nil
-        end
-
-        Lighting.GlobalShadows = true
-        Lighting.Brightness = 1
-        Lighting.EnvironmentDiffuseScale = 1
-        Lighting.EnvironmentSpecularScale = 1
-        Lighting.FogEnd = 100000
-        for _, effect in pairs(Lighting:GetChildren()) do
-            if effect:IsA("PostEffect") or effect:IsA("Sky") then
-                pcall(function() effect.Enabled = true end)
-            end
-        end
-
-        warn("[Misc] ANTI-LAG DESACTIVADO → Todo visible de nuevo")
-    end
-end)
-
--- Botón de emergencia (si se queda negra y no puedes desactivar)
-miscTab:AddButton("Restaurar Pantalla (Emergencia)", function()
-    if blackGui then
-        blackGui:Destroy()
-        blackGui = nil
-    end
-    local Lighting = game:GetService("Lighting")
-    Lighting.GlobalShadows = true
-    Lighting.Brightness = 1
-    Lighting.FogEnd = 100000
-    warn("[Misc] Pantalla restaurada manualmente")
-end)
-
--- Equip Swift Samurai (Max 8)
-miscTab:AddButton("Equip Swift Samurai (Max 8)", function()
-    local petsFolder = player:FindFirstChild("petsFolder")
-    if not petsFolder then 
-        warn("[Misc] petsFolder no encontrado")
-        return 
-    end
-
-    for _, folder in pairs(petsFolder:GetChildren()) do
-        if folder:IsA("Folder") then
-            for _, pet in pairs(folder:GetChildren()) do
-                pcall(function()
-                    game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("unequipPet", pet)
-                end)
-            end
-        end
-    end
-    task.wait(0.1)
-
-    local equipped = 0
-    local maxEquip = 8
-    for _, folder in pairs(petsFolder:GetChildren()) do
-        if folder:IsA("Folder") then
-            for _, pet in pairs(folder:GetChildren()) do
-                if pet.Name == "Swift Samurai" then
-                    pcall(function()
-                        game.ReplicatedStorage.rEvents.equipPetEvent:FireServer("equipPet", pet)
-                    end)
-                    equipped = equipped + 1
-                    if equipped >= maxEquip then
-                        print("[Misc] Máximo 8 equipados")
-                        return
-                    end
-                end
-            end
-        end
-    end
-end)
-
--- Auto Spin Fortune Wheel
-getgenv().AutoSpinWheel = false
-
-miscTab:AddSwitch("Spin Fortune Wheel", function(state)
-    getgenv().AutoSpinWheel = state
-
-    if state then
-        warn("[Misc] Auto Spin ACTIVADO")
-        task.spawn(function()
-            while getgenv().AutoSpinWheel do
-                pcall(function()
-                    game.ReplicatedStorage.rEvents.openFortuneWheelRemote:InvokeServer(
-                        "openFortuneWheel",
-                        game.ReplicatedStorage.fortuneWheelChances["Fortune Wheel"]
-                    )
-                end)
-                task.wait(0.1)
-            end
-        end)
-    else
-        warn("[Misc] Auto Spin DESACTIVADO")
     end
 end)
