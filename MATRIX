@@ -216,7 +216,6 @@ end)
 
 local farmSection = window:AddTab("Farm Strength")
 
-local FastRebs = window:AddTab("Rebirths Farm")
 
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local blockedFrames = {
