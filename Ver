@@ -175,14 +175,14 @@ local startTime = tick()
 
 -- GUI
 local gui = Instance.new("ScreenGui")
-gui.Name = "AntiAFK_Johanx7_12"
+gui.Name = "Anti Afk"
 gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame", gui)
 frame.Size = UDim2.new(0, 280, 0, 160)
 frame.Position = UDim2.new(0, 20, 0, 20)
-frame.BackgroundColor3 = Color3.fromRGB(120, 0, 0)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 frame.BackgroundTransparency = 0.1
 frame.BorderSizePixel = 0
 frame.Active = true
@@ -194,7 +194,7 @@ corner.CornerRadius = UDim.new(0, 14)
 local title = Instance.new("TextLabel", frame)
 title.Size = UDim2.new(1, -30, 0, 30)
 title.BackgroundTransparency = 1
-title.Text = "Anti AFK by Johanx7_12"
+title.Text = "Anti AFK"
 title.TextColor3 = Color3.fromRGB(255, 80, 80)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 16
