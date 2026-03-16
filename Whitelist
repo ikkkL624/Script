@@ -1,8 +1,14 @@
-local Players = game:GetService("Players")
-
-local whitelist = {
-    "MONARCA_986",
-    "AFT123t",
-    "OG_XxKINGxX555",
-    "KeRbErOshh"
+return {
+    ["MissSherya"] = true,
+    ["Koby20255"] = true,
+    ["Mawi2025"] = true,
+    [""] = true,
+    [""] = true,
+    [""] = true,
+    [""] = true,
+    [""] = true,
+    [""] = true,
+    [""] = true,
+    [""] = true,
+    [""] = true
 }
