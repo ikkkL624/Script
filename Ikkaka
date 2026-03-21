@@ -8,7 +8,7 @@ local displayName = player.DisplayName or player.Name
 
 local window = library:AddWindow("The Strongest Rework | SERVERUS |  Hello " .. displayName, {
     main_color = Color3.fromRGB(50, 50, 190),
-    min_size = Vector2.new(600, 600),
+    min_size = Vector2.new(600, 870),
     can_resize = true,
 })
 
