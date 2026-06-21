@@ -1,0 +1,12 @@
+local library = loadstring(game:HttpGet("://raw.githubusercontent.com/PAPIKING-CODER/BLOODAXE/refs/heads/main/KOD-LIBRARY.lua"))()
+
+local player = game.Players.LocalPlayer
+local displayName = player.DisplayName or player.Name
+  
+local Window = library:AddWindow("Proceso"..displayName,{
+  main_color = Color3.fromRGB(0, 0, 0),
+    min_size = Vector2.new(650, 870),
+    can_resize = true,
+})
+
+  local Main = Window:AddTab("Main")
