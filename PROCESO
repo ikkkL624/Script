@@ -9,4 +9,4 @@ local Window = library:AddWindow("Proceso"..displayName,{
     can_resize = true,
 })
 
-  local Main = Window:AddTab("Main")
+local Main = Window:AddTab("Main")
